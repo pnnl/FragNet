@@ -1,0 +1,48 @@
+atom_features: 167
+data_seed: None
+device: gpu
+edge_features: 17
+exp_dir: exps/ft/pnnl_full/fragnet_hpdl_exp1s_h4pt4_10
+finetune:
+  batch_size: 16
+  chkpoint_name: exps/ft/pnnl_full/fragnet_hpdl_exp1s_h4pt4_10/ft_100.pt
+  es_patience: 100
+  loss: mse
+  lr: 1e-4
+  model:
+    act: selu
+    drop_ratio: 0.1
+    emb_dim: 128
+    fthead: FTHead4
+    h1: 1472
+    h2: 1024
+    h3: 1024
+    h4: 512
+    n_classes: 1
+    num_heads: 4
+    num_layer: 4
+  n_epochs: 10000
+  n_multi_task_heads: 0
+  target_type: regr
+  test:
+    path: finetune_data/pnnl_full/test.pkl
+  train:
+    path: finetune_data/pnnl_full/train.pkl
+  use_schedular: false
+  val:
+    path: finetune_data/pnnl_full/val.pkl
+frag_features: 167
+model_version: gat2
+pretrain:
+  batch_size: 128
+  chkpoint_name: exps/pt/unimol_exp1s4/pt.pt
+  drop_ratio: 0.2
+  emb_dim: 128
+  es_patience: 500
+  loss: mse
+  lr: 1e-4
+  n_classes: 1
+  n_epochs: 20000
+  num_heads: 4
+  num_layer: 4
+seed: 100

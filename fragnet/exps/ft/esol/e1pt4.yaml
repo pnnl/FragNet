@@ -1,0 +1,62 @@
+seed: 123
+# seed: 4
+# seed: 456
+data_seed: None
+exp_dir: exps/ft/esol
+model_version: gat2
+device: gpu
+atom_features: 167
+frag_features: 167 
+edge_features: 17
+fedge_in: 6
+fbond_edge_in: 6
+# atom_features: 49
+# frag_features: 49 
+# edge_features: 12
+#model_version: gat2_transformer
+# model_version: gat2_transformer2
+pretrain:
+  model_version: gat2
+  num_layer: 4
+  drop_ratio: 0.2 
+  num_heads: 4
+  emb_dim: 128
+  chkpoint_name: exps/pt/unimol_exp1s4/pt.pt
+  loss: mse
+  batch_size: 128
+  es_patience: 500
+  lr: 1e-4
+  n_epochs: 20000
+  n_classes: 1
+# molebert splitting 
+
+finetune:
+  n_multi_task_heads: 0
+  # batch_size: 24 # best
+  batch_size: 16
+  lr: 1e-4
+  model:
+    n_classes: 1
+    num_layer: 4
+    drop_ratio: 0.1
+    num_heads: 4
+    emb_dim: 128
+    h1: 128 #128
+    h2: 1024
+    h3: 1024
+    h4: 512
+    act: relu
+    fthead: FTHead3
+    
+  n_epochs: 10000
+  target_type: regr
+  loss: mse
+  use_schedular: False
+  es_patience: 100
+  chkpoint_name: ${exp_dir}/ft.pt
+  train: 
+    path: finetune_data/moleculenet_exp1s/esol/train.pkl # 20 exp node features
+  val: 
+    path: finetune_data/moleculenet_exp1s/esol/val.pkl # 20 exp node features
+  test:
+    path: finetune_data/moleculenet_exp1s/esol/test.pkl # 20 exp node features
