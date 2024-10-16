@@ -10,7 +10,7 @@ FragNet is a Graph Neural Network designed for molecular property prediction, th
 
 ### Installation
 1. Create a python virtual environment and install the required packages using the command `pip instal -r requirements.txt`
-2. Next install FragNet. In the directory where `setup.py` is run the command `pip install .`
+2. Next install FragNet. In the directory where `setup.py` is, run the command `pip install .`
 
 
 ### Creating pretraining data
