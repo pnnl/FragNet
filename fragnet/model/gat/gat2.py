@@ -8,6 +8,7 @@ from torch_scatter import scatter_add
 import numpy as np
 import torch.nn.functional as F
 from torch_geometric.nn.norm import BatchNorm
+import random
 
 
 class FragNetLayerA(nn.Module):
@@ -313,24 +314,24 @@ class FragNetViz(FragNet):
             
     
     
-from .pretrain_heads import PretrainTask
-class FragNetPreTrain2(nn.Module):
+# from fragnet.model.gat.pretrain_heads import PretrainTask
+# class FragNetPreTrain2(nn.Module):
     
-    def __init__(self, num_layer=4, drop_ratio=0.15, num_heads=4, emb_dim=128):
-        super(FragNetPreTrain, self).__init__()
+#     def __init__(self, num_layer=4, drop_ratio=0.15, num_heads=4, emb_dim=128):
+#         super(FragNetPreTrain, self).__init__()
         
-        self.pretrain = FragNet(num_layer=num_layer, drop_ratio=drop_ratio, num_heads=num_heads, emb_dim=emb_dim)
-        self.head = PretrainTask(128, 1)
+#         self.pretrain = FragNet(num_layer=num_layer, drop_ratio=drop_ratio, num_heads=num_heads, emb_dim=emb_dim)
+#         self.head = PretrainTask(128, 1)
         
         
-    def forward(self, batch):
+#     def forward(self, batch):
         
-        x_atoms, x_frags, e_edge = self.pretrain(batch)
-        bond_length_pred, bond_angle_pred, dihedral_angle_pred =  self.head(x_atoms, e_edge, batch['edge_index'])
-        # i am using all the bond angles as node features in the bond graph. so, it's probably not very effective to use 3D-PDT's
-        # bond angle sum as a pretraining target. the model might not learn anything.
+#         x_atoms, x_frags, e_edge = self.pretrain(batch)
+#         bond_length_pred, bond_angle_pred, dihedral_angle_pred =  self.head(x_atoms, e_edge, batch['edge_index'])
+#         # i am using all the bond angles as node features in the bond graph. so, it's probably not very effective to use 3D-PDT's
+#         # bond angle sum as a pretraining target. the model might not learn anything.
 
-        return bond_length_pred, dihedral_angle_pred
+#         return bond_length_pred, dihedral_angle_pred
 
 class FTHead1(nn.Sequential):
     def __init__(self, emb_dim=128, h1=128, drop_ratio=.2, n_classes=1):

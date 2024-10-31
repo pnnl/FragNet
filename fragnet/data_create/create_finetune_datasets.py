@@ -2,7 +2,7 @@ import argparse
 
 from fragnet.dataset.moleculenet import create_moleculenet_dataset
 from fragnet.dataset.general import create_general_dataset
-from fragnet.dataset.unimol import create_moleculenet_dataset_from_unimol_data
+# from fragnet.dataset.unimol import create_moleculenet_dataset_from_unimol_data
 from fragnet.dataset.simsgt import create_moleculenet_dataset_simsgt
 from fragnet.dataset.dta import create_dta_dataset
 from fragnet.dataset.cdrp import create_cdrp_dataset

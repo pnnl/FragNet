@@ -119,8 +119,8 @@ selected = st_ketcher( selected )
 #     'DATA.1290809',
 #     'DATA.949158',
 #     'DATA.924110'])
-cell_line='DATA.924110'
-cell_line_df = pd.read_csv('../fragnet/fragnet/assets/cell_line_data.csv', index_col=0)
+# cell_line='DATA.924110'
+# cell_line_df = pd.read_csv('../fragnet/fragnet/assets/cell_line_data.csv', index_col=0)
 
 #     st.sidebar.write(f'selected cell line: {cell_line}')
 
@@ -128,8 +128,8 @@ col1, col2, col3 = st.columns(3)
 
 if prop_type in ["Solubility", "Lipophilicity", "Energy"]:
     viz, prop_prediction, model_config, chkpt_path = resolve_prop_model(prop_type)
-elif prop_type == "DRP":
-    viz, prop_prediction, model_config, chkpt_path = resolve_DRP(selected, cell_line, cell_line_df)
+# elif prop_type == "DRP":
+#     viz, prop_prediction, model_config, chkpt_path = resolve_DRP(selected, cell_line, cell_line_df)
 
 
 hide_bond_weights = st.sidebar.checkbox("Hide bond weights")
