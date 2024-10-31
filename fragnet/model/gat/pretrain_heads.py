@@ -4,6 +4,7 @@ import random
 from torch_scatter import scatter_add
 from fragnet.model.gat.gat2 import FragNet
 
+
 class PretrainTask(nn.Module):
     """
     This function was copied from

@@ -15,8 +15,16 @@ FragNet is a Graph Neural Network designed for molecular property prediction, th
 
 ### Creating pretraining data
 
-FragNet was pretrained using part of the data used by UniMol. Creating the data for pretraining can be done using the following command.
+FragNet was pretrained using part of the data used by UniMol.
 
+Here, we use ESOL dataset to demonstrate the data creation.
+First, create a directory to save data.
+`mkdir -p finetune_data/moleculenet/esol/raw/`
+
+Next, download ESOL dataset.
+`wget -O finetune_data/moleculenet/esol/raw/delaney-processed.csv https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv`
+
+Next, run the following command to create data.
 `python data_create/create_pretrain_datasets.py --save_path pretrain_data/esol --data_type exp1s --maxiters 500 --raw_data_path finetune_data/moleculenet/esol/raw/delaney-processed.csv`
 
 
@@ -30,7 +38,8 @@ raw_data_path: location of the smiles dataset
 
 Creating data for finetuning for MoleculeNet datasets can be done as follows,
 
-`python create_finetune_datasets.py --dataset_name moleculenet --dataset_subset esol --use_molebert True --output_dir finetune_data/moleculenet_exp1s --data_dir finetune_data/moleculenet --data_type exp1s`
+
+`python data_create/create_finetune_datasets.py --dataset_name moleculenet --dataset_subset esol --use_molebert True --output_dir finetune_data/moleculenet_exp1s --data_dir finetune_data/moleculenet --data_type exp1s`
 
 ```
 dataset_name: dataset type
@@ -42,7 +51,7 @@ use_molebert: whether to use the dataset splitting method to used by MoleBert mo
 
 To pretrain run the following command. All the input parameters have to be given in a config file.
 
-`python train/pretrain/pretrain_gat2.py --config exps/pt/unimol_m4/config.yaml`
+`python train/pretrain/pretrain_gat2.py --config exps/pt/unimol_exp1s4/config.yaml`
 
 ### Finetune
 `python train/finetune/finetune_gat2.py --config exps/ft/esol/e1pt4.yaml`

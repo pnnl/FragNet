@@ -14,6 +14,8 @@ from fragnet.train.pretrain.pretrain_utils import Trainer
 from sklearn.model_selection import train_test_split
 from fragnet.dataset.data import collate_fn_pt as collate_fn
 import pandas as pd
+from fragnet.model.gat.gat2 import FragNet
+from torch_scatter import scatter_add
 
 def seed_everything(seed: int):
     import random, os
@@ -71,7 +73,6 @@ def save_predictions(trainer, loader, model, exp_dir, device, save_name='test_re
 
     with open(f"{exp_dir}/{save_name}.pkl", 'wb') as f:
         pickle.dump(res,f )
-
 
 
 

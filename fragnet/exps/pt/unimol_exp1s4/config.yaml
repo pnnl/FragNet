@@ -1,0 +1,26 @@
+seed: 123
+exp_dir: exps/pt/unimol_exp1s4
+atom_features: 167
+frag_features: 167 
+edge_features: 17
+model_version: gat2
+device: cpu
+fedge_in: 6
+fbond_edge_in: 6
+pretrain:
+  num_layer: 4
+  drop_ratio: 0.2 
+  num_heads: 4
+  emb_dim: 128
+  chkpoint_name: ${exp_dir}/pt.pt
+  saved_checkpoint: null
+  loss: mse
+  batch_size: 512
+  es_patience: 200
+  lr: 1e-4
+  n_epochs: 200
+  valdiate_every: 5
+  data:
+   - pretrain_data/esol/
+  train_smiles: null
+  val_smiles: null
