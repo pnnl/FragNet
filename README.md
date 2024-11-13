@@ -46,11 +46,11 @@ Creating data for finetuning for MoleculeNet datasets can be done as follows,
 
 `python data_create/create_finetune_datasets.py --dataset_name moleculenet --dataset_subset esol --use_molebert True --output_dir finetune_data/moleculenet_exp1s --data_dir finetune_data/moleculenet --data_type exp1s`
 
-```
-dataset_name: dataset type
-dataset_subset: dataset sub-type
-use_molebert: whether to use the dataset splitting method to used by MoleBert model
-```
+
+- dataset_name: dataset type
+- dataset_subset: dataset sub-type
+- use_molebert: whether to use the dataset splitting method to used by MoleBert model
+
 
 ### Pretrain
 
