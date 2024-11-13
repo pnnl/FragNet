@@ -33,12 +33,12 @@ Next, run the following command to create data.
 python data_create/create_pretrain_datasets.py --save_path pretrain_data/esol --data_type exp1s --maxiters 500 --raw_data_path finetune_data/moleculenet/esol/raw/delaney-processed.csv
 ```
 
-```
-save_path: where the datasets should be saved
-data_type: use exp1s for all the calculations 
-maxiters: maximum number of iterations for 3D coordinate generation
-raw_data_path: location of the smiles dataset
-```
+
+- save_path: where the datasets should be saved
+- data_type: use exp1s for all the calculations 
+- maxiters: maximum number of iterations for 3D coordinate generation
+- raw_data_path: location of the smiles dataset
+
 ### Creating finetuning data
 
 Creating data for finetuning for MoleculeNet datasets can be done as follows,
