@@ -23,12 +23,15 @@ First, create a directory to save data.
 
 Next, download ESOL dataset.
 
-```wget -O finetune_data/moleculenet/esol/raw/delaney-processed.csv https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv```
+```
+wget -O finetune_data/moleculenet/esol/raw/delaney-processed.csv https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv
+```
 
 Next, run the following command to create data.
 
-```python data_create/create_pretrain_datasets.py --save_path pretrain_data/esol --data_type exp1s --maxiters 500 --raw_data_path finetune_data/moleculenet/esol/raw/delaney-processed.csv```
-
+```
+python data_create/create_pretrain_datasets.py --save_path pretrain_data/esol --data_type exp1s --maxiters 500 --raw_data_path finetune_data/moleculenet/esol/raw/delaney-processed.csv
+```
 
 ```
 save_path: where the datasets should be saved
@@ -53,10 +56,14 @@ use_molebert: whether to use the dataset splitting method to used by MoleBert mo
 
 To pretrain run the following command. All the input parameters have to be given in a config file.
 
-`python train/pretrain/pretrain_gat2.py --config exps/pt/unimol_exp1s4/config.yaml`
+```
+python train/pretrain/pretrain_gat2.py --config exps/pt/unimol_exp1s4/config.yaml
+```
 
 ### Finetune
-`python train/finetune/finetune_gat2.py --config exps/ft/esol/e1pt4.yaml`
+```
+python train/finetune/finetune_gat2.py --config exps/ft/esol/e1pt4.yaml
+```
 
 
 
@@ -68,8 +75,10 @@ To run this application, run the command `streamlit run fragnet/vizualize/app.py
 
 ## Optional
 ### Hyperparameter tuning
-`python  hp/hpoptuna.py --config exps/ft/esol/e1pt4.yaml --n_trials 10 \
---chkpt hpruns/pt.pt --seed 10 --ft_epochs 10 --prune 1`
+```
+python  hp/hpoptuna.py --config exps/ft/esol/e1pt4.yaml --n_trials 10 \
+--chkpt hpruns/pt.pt --seed 10 --ft_epochs 10 --prune 1
+```
 
 
 ```
