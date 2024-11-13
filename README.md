@@ -80,15 +80,13 @@ python  hp/hpoptuna.py --config exps/ft/esol/e1pt4.yaml --n_trials 10 \
 --chkpt hpruns/pt.pt --seed 10 --ft_epochs 10 --prune 1
 ```
 
+- config: initial parameters
+- n_trials: number of hp optimization trails
+- chkpt: this is where the checkoint during hp optimization will be saved. Note that you will have to create an output directory for this (in this case hpruns). Otherwise the output directory is assumed to be the current working directory.
+- seed: random seed
+- ft_epochs: number of training epochs
+- prune: For Optuna runs. Whether to prune an optimization.
 
-```
-config: initial parameters
-n_trials: number of hp optimization trails
-chkpt: this is where the checkoint during hp optimization will be saved. Note that you will have to create an output directory for this (in this case hpruns). Otherwise the output directory is assumed to be the current working directory.
-seed: random seed
-ft_epochs: number of training epochs
-prune: For Optuna runs. Whether to prune an optimization.
-```
 
 
 
