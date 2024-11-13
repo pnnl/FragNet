@@ -16,7 +16,7 @@ FragNet is a Graph Neural Network designed for molecular property prediction, th
 
 ### Creating pretraining data
 
-FragNet was pretrained using part of the data used by UniMol.
+FragNet was pretrained using part of the data used by [UniMol](https://github.com/deepmodeling/Uni-Mol/tree/main/unimol).
 
 Here, we use ESOL dataset to demonstrate the data creation.
 First, create a directory to save data.
