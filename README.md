@@ -20,22 +20,22 @@ You can also do `bash install_cpu.sh` which will install FragNet and create pret
 
 FragNet was pretrained using part of the data used by [UniMol](https://github.com/deepmodeling/Uni-Mol/tree/main/unimol).
 
-Here, we use ESOL dataset to demonstrate the data creation. The following commands should be run at the root directory (where `setup.py` is).
+Here, we use ESOL dataset to demonstrate the data creation. The following commands should be run at the `FragNet/fragnet` directory.
 
 First, create a directory to save data.
 
-```mkdir -p fragnet/finetune_data/moleculenet/esol/raw/```
+```mkdir -p finetune_data/moleculenet/esol/raw/```
 
 Next, download ESOL dataset.
 
 ```
-wget -O fragnet/finetune_data/moleculenet/esol/raw/delaney-processed.csv https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv
+wget -O finetune_data/moleculenet/esol/raw/delaney-processed.csv https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv
 ```
 
 Next, run the following command to create pretraining data.
 
 ```
-python fragnet/data_create/create_pretrain_datasets.py --save_path fragnet/pretrain_data/esol --data_type exp1s --maxiters 500 --raw_data_path fragnet/finetune_data/moleculenet/esol/raw/delaney-processed.csv
+python data_create/create_pretrain_datasets.py --save_path pretrain_data/esol --data_type exp1s --maxiters 500 --raw_data_path finetune_data/moleculenet/esol/raw/delaney-processed.csv
 ```
 
 
@@ -49,7 +49,7 @@ python fragnet/data_create/create_pretrain_datasets.py --save_path fragnet/pretr
 Creating data for finetuning for MoleculeNet datasets can be done as follows,
 
 
-`python fragnet/data_create/create_finetune_datasets.py --dataset_name moleculenet --dataset_subset esol --use_molebert True --output_dir fragnet/finetune_data/moleculenet_exp1s --data_dir fragnet/finetune_data/moleculenet --data_type exp1s`
+`python data_create/create_finetune_datasets.py --dataset_name moleculenet --dataset_subset esol --use_molebert True --output_dir finetune_data/moleculenet_exp1s --data_dir finetune_data/moleculenet --data_type exp1s`
 
 
 - dataset_name: dataset type
