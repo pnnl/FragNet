@@ -46,6 +46,8 @@ python data_create/create_pretrain_datasets.py --save_path pretrain_data/esol --
 - maxiters: maximum number of iterations for 3D coordinate generation
 - raw_data_path: location of the smiles dataset
 
+------
+
 ### Creating finetuning data
 
 Creating data for finetuning for MoleculeNet datasets can be done as follows,
@@ -58,6 +60,7 @@ Creating data for finetuning for MoleculeNet datasets can be done as follows,
 - dataset_subset: dataset sub-type
 - use_molebert: whether to use the dataset splitting method to used by MoleBert model
 
+------
 
 ### Pretrain
 
@@ -67,18 +70,23 @@ To pretrain run the following command. All the input parameters have to be given
 python train/pretrain/pretrain_gat2.py --config exps/pt/unimol_exp1s4/config.yaml
 ```
 
+------
+
 ### Finetune
 ```
 python train/finetune/finetune_gat2.py --config exps/ft/esol/e1pt4.yaml
 ```
 
 
+------
 
 ## Interactive Web Application
 
 To run this application, run the command `streamlit run fragnet/vizualize/app.py` from the root directory
 
 <img src="fragnet/assets/app.png" alt="drawing" width="500"/>
+
+------
 
 ## Optional
 ### Hyperparameter tuning
