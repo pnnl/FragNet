@@ -11,27 +11,29 @@ FragNet is a Graph Neural Network designed for molecular property prediction, th
 
 ### Installation
 1. Create a python virtual environment and install the required packages using the command `pip instal -r requirements.txt`
-2. Next install FragNet. In the directory where `setup.py` is, run the command `pip install .`
+2. Install torch-scatter using `pip install torch-scatter -f https://data.pyg.org/whl/torch-2.4.0+cpu.html`
+3. Next install FragNet. In the directory where `setup.py` is, run the command `pip install .`
 
+You can also do `bash install_cpu.sh` which will install FragNet and create pretraining and finetuning data for ESOL dataset.
 
 ### Creating pretraining data
 
 FragNet was pretrained using part of the data used by [UniMol](https://github.com/deepmodeling/Uni-Mol/tree/main/unimol).
 
-Here, we use ESOL dataset to demonstrate the data creation.
+Here, we use ESOL dataset to demonstrate the data creation. The following commands should be run at the root directory (where `setup.py` is)
 First, create a directory to save data.
-`mkdir -p finetune_data/moleculenet/esol/raw/`
+`mkdir -p fragnet/finetune_data/moleculenet/esol/raw/`
 
 Next, download ESOL dataset.
 
 ```
-wget -O finetune_data/moleculenet/esol/raw/delaney-processed.csv https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv
+wget -O fragnet/finetune_data/moleculenet/esol/raw/delaney-processed.csv https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/delaney-processed.csv
 ```
 
-Next, run the following command to create data.
+Next, run the following command to create pretraining data.
 
 ```
-python data_create/create_pretrain_datasets.py --save_path pretrain_data/esol --data_type exp1s --maxiters 500 --raw_data_path finetune_data/moleculenet/esol/raw/delaney-processed.csv
+python fragnet/data_create/create_pretrain_datasets.py --save_path fragnet/pretrain_data/esol --data_type exp1s --maxiters 500 --raw_data_path fragnet/finetune_data/moleculenet/esol/raw/delaney-processed.csv
 ```
 
 
@@ -45,7 +47,7 @@ python data_create/create_pretrain_datasets.py --save_path pretrain_data/esol --
 Creating data for finetuning for MoleculeNet datasets can be done as follows,
 
 
-`python data_create/create_finetune_datasets.py --dataset_name moleculenet --dataset_subset esol --use_molebert True --output_dir finetune_data/moleculenet_exp1s --data_dir finetune_data/moleculenet --data_type exp1s`
+`python fragnet/data_create/create_finetune_datasets.py --dataset_name moleculenet --dataset_subset esol --use_molebert True --output_dir fragnet/finetune_data/moleculenet_exp1s --data_dir fragnet/finetune_data/moleculenet --data_type exp1s`
 
 
 - dataset_name: dataset type
