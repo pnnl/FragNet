@@ -23,7 +23,8 @@ FragNet was pretrained using part of the data used by [UniMol](https://github.co
 Here, we use ESOL dataset to demonstrate the data creation. The following commands should be run at the root directory (where `setup.py` is).
 
 First, create a directory to save data.
-`mkdir -p fragnet/finetune_data/moleculenet/esol/raw/`
+
+```mkdir -p fragnet/finetune_data/moleculenet/esol/raw/```
 
 Next, download ESOL dataset.
 
