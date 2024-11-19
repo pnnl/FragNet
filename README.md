@@ -16,6 +16,8 @@ FragNet is a Graph Neural Network designed for molecular property prediction, th
 
 You can also do `bash install_cpu.sh` which will install FragNet and create pretraining and finetuning data for ESOL dataset.
 
+-------
+
 ### Creating pretraining data
 
 FragNet was pretrained using part of the data used by [UniMol](https://github.com/deepmodeling/Uni-Mol/tree/main/unimol).
