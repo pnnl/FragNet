@@ -15,7 +15,7 @@ The installation has been tested with python 3.11 and cuda 12.1
 
 #### For CPU
 
-1. Create a python 3.11 virtual environment and install the required packages using the command `pip instal -r requirements.txt`
+1. Create a python 3.11 virtual environment and install the required packages using the command `pip install -r requirements.txt`
 2. Install torch-scatter using `pip install torch-scatter -f https://data.pyg.org/whl/torch-2.4.0+cpu.html`
 3. Next install FragNet. In the directory where `setup.py` is, run the command `pip install .`
 
