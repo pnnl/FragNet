@@ -10,6 +10,9 @@ import torch.nn.functional as F
 from torch_geometric.nn.norm import BatchNorm
 import random
 
+"""
+Contains the graph attention layer, FragNet model and the regression heads
+"""
 
 class FragNetLayerA(nn.Module):
     def __init__(self, atom_in=128, atom_out=128, frag_in=128, frag_out=128,
@@ -83,10 +86,12 @@ class FragNetLayerA(nn.Module):
         node_feats_b = self.projection_b(node_feautures_bond_graph)
         node_feats_b = node_feats_b.view(num_nodes_b, self.num_heads, -1)
         
+        # select source and target features
         source_features = torch.index_select(input=node_feats_b, index=source, dim=0)
         target_features = torch.index_select(input=node_feats_b, index=target, dim=0)
         message = torch.cat([target_features, ea_bonds, source_features], dim=-1)          
         
+
         attn_logits = torch.sum(message * self.a_b, dim=2)
         attn_logits = self.leakyrelu(attn_logits)
 
@@ -129,7 +134,7 @@ class FragNetLayerA(nn.Module):
 
         node_features_atom_graph = attn_probs[..., None]*hj # multiply the node features by the attention weights
         node_feats_sum_a = scatter_add(src=node_features_atom_graph, index=target, dim=0) # nodes in the bond graph are the edges in the atom graph
-        summed_attn_weights_atoms = scatter_add(attn_probs, source, dim=0) # total attention attributed to each node in the bond graph, or each edge in the atom graph 
+        summed_attn_weights_atoms = scatter_add(attn_probs, source, dim=0) # total attention attributed to each node in the atom graph, or each edge in the atom graph 
         x_atoms_new = node_feats_sum_a.view(num_nodes_a, -1) 
         x_frags  = scatter_add(src=x_atoms_new, index=atom_to_frag_ids, dim=0)
 
