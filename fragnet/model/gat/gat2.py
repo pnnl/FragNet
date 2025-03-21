@@ -262,6 +262,9 @@ class FragNet(nn.Module):
     
     
 class FragNetViz(FragNet):
+        """
+        The model used for the attention weight vizualization
+        """
         def __init__(self, num_layer, drop_ratio = 0, emb_dim=128, 
                      atom_features=45, frag_features=45, edge_features=12, num_heads=4,
                      return_attentions=True):
@@ -339,6 +342,7 @@ class FragNetViz(FragNet):
 #         return bond_length_pred, dihedral_angle_pred
 
 class FTHead1(nn.Sequential):
+    """Regression Head 1."""
     def __init__(self, emb_dim=128, h1=128, drop_ratio=.2, n_classes=1):
         super().__init__()
 
@@ -400,7 +404,7 @@ class FTHead5(nn.Sequential):
         return out
 
 class FTHead4(nn.Module):
-    """Head for sentence-level classification tasks."""
+    """Regression Head 4."""
 
     def __init__(
         self,
@@ -511,6 +515,9 @@ def do_nothing(a):
     pass
 
 class FragNetFineTune(nn.Module):
+    """
+    Trainer class for finetuning.
+    """
     
     def __init__(self, n_classes=1, atom_features=167, frag_features=167, edge_features=16, 
                  num_layer=4, num_heads=4, drop_ratio=0.15,
@@ -556,6 +563,10 @@ class FragNetFineTune(nn.Module):
 
 from torch_geometric.nn import TransformerConv
 class FragNetFineTuneTransformer(nn.Module):
+
+    """
+    Transforms atom and fragment features using TransformerConv layers.
+    """
     
     def __init__(self, n_classes=1, num_layer=4, drop_ratio=0.15,
                 h1=256, num_heads=4, emb_dim=128, transformer_heads=1,

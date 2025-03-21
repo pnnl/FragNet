@@ -27,6 +27,9 @@ def seed_everything(seed: int):
     
 
 def get_train_stats(ds, exp_dir):
+    """
+    calculates mean and standard deviation of target values
+    """
     y_old = np.array([i.y.item() for i in ds])
     mean = np.mean(y_old)
     sdev = np.std(y_old)
@@ -43,6 +46,9 @@ def scale_y(ds, mean, sdev):
 
 
 def save_predictions(trainer, loader, model, exp_dir, device, save_name='test_res', loss_type='mse', seed=123):
+    """
+    saves prediction accuracies, true and predicted labels in pkl files
+    """
     score, true, pred = trainer.test(model=model, loader=loader, device=device)
     smiles = [i.smiles for i in loader.dataset]
 
@@ -82,14 +88,16 @@ if __name__ == "__main__":
     
 
 
-
+    # model and trainers are selected depending on the model type
     if args.model_version == 'gat':
+        # basic graph attention model
         from fragnet.model.gat.gat import FragNetFineTune
         print('loaded from gat')
         model = FragNetFineTune(n_classes=args.finetune.model.n_classes)
         trainer = Trainer(target_type=args.finetune.target_type)
 
     elif args.model_version == 'gcn2':
+        # uses graph convolutional layers
         print ('importing model gcn')
         from fragnet.model.gcn.gcn2 import FragNetFineTune
         model = FragNetFineTune(n_classes=args.finetune.model.n_classes,
@@ -109,6 +117,7 @@ if __name__ == "__main__":
         trainer = Trainer(target_type=args.finetune.target_type)
         
     elif args.model_version=='gat2':
+        # graph attention mechanism with edge features
         from fragnet.model.gat.gat2 import FragNetFineTune
         model = FragNetFineTune(n_classes=args.finetune.model.n_classes, 
                             atom_features=args.atom_features, 
@@ -130,6 +139,8 @@ if __name__ == "__main__":
         print('loaded from gat2')
 
     elif args.model_version=='gat2_lite':
+        # this version does not use fragment graph. only the atom and the bond graph.
+        # this is suitable for very large graph structures which require more compute power.
         from fragnet.model.gat.gat2_lite import FragNetFineTune
         model = FragNetFineTune(n_classes=args.finetune.model.n_classes, 
                             atom_features=args.atom_features, 
