@@ -5,11 +5,12 @@ from .feature_utils import get_bond_pair
 
 
 class FeaturesEXP:
-
-    """
-    Class for creating initial atom, bond and connection features.
     
     """
+    Class for creating initial atom, bond and connection features.
+    Used by CreateData in dataset/data.py 
+    """
+
     def __init__(self, add_connection_chrl=False):
         self.atom_list_one_hot = list(range(1, 119))
         self.use_bond_chirality = True

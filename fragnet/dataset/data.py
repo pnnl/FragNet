@@ -482,6 +482,9 @@ class CreateData:
         return data
 
     def get_frag_idx_cnx_attr_2s(self, graph):
+        """
+        Adds two edges for each connection
+        """
         frag_idx = [[], []]
         cnx_attr = []
         for connection in graph.connections:
@@ -500,6 +503,10 @@ class CreateData:
         return frag_idx, cnx_attr
 
     def get_frag_idx_cnx_attr_1s(self, graph):
+        """
+        If the compound consists of a single fragment, adds a self edge connecting the fragment to itself.
+        Else, add two edges connecting Frag_i and Frag_j, where i != j.
+        """
         frag_idx = [[], []]
         cnx_attr = []
 
