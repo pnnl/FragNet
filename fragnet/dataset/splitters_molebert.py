@@ -1,4 +1,4 @@
-""""
+""" "
 Codes containing in this script were obtained from the
 repository https://github.com/junxia97/Mole-BERT and modified
 """
@@ -12,7 +12,9 @@ from rdkit.Chem.Scaffolds import MurckoScaffold
 from collections import defaultdict
 from sklearn.model_selection import StratifiedKFold
 import torch_geometric
+
 # splitter function
+
 
 def generate_scaffold(smiles, include_chirality=False):
     """
@@ -22,12 +24,21 @@ def generate_scaffold(smiles, include_chirality=False):
     :return: smiles of scaffold
     """
     scaffold = MurckoScaffold.MurckoScaffoldSmiles(
-        smiles=smiles, includeChirality=include_chirality)
+        smiles=smiles, includeChirality=include_chirality
+    )
     return scaffold
 
-def scaffold_split(dataset, smiles_list, task_idx=None, null_value=0,
-                   frac_train=0.8, frac_valid=0.1, frac_test=0.1,
-                   return_smiles=False):
+
+def scaffold_split(
+    dataset,
+    smiles_list,
+    task_idx=None,
+    null_value=0,
+    frac_train=0.8,
+    frac_valid=0.1,
+    frac_test=0.1,
+    return_smiles=False,
+):
     """
     Adapted from https://github.com/deepchem/deepchem/blob/master/deepchem/splits/splitters.py
     Split dataset by Bemis-Murcko scaffolds
@@ -73,8 +84,10 @@ def scaffold_split(dataset, smiles_list, task_idx=None, null_value=0,
     # sort from largest to smallest sets
     all_scaffolds = {key: sorted(value) for key, value in all_scaffolds.items()}
     all_scaffold_sets = [
-        scaffold_set for (scaffold, scaffold_set) in sorted(
-            all_scaffolds.items(), key=lambda x: (len(x[1]), x[1][0]), reverse=True)
+        scaffold_set
+        for (scaffold, scaffold_set) in sorted(
+            all_scaffolds.items(), key=lambda x: (len(x[1]), x[1][0]), reverse=True
+        )
     ]
 
     # get train, valid test indices
@@ -102,11 +115,10 @@ def scaffold_split(dataset, smiles_list, task_idx=None, null_value=0,
         test_dataset = [dataset[i] for i in test_idx]
 
     elif isinstance(dataset, pd.DataFrame):
-        
+
         train_dataset = dataset.loc[train_idx, :]
         valid_dataset = dataset.loc[valid_idx, :]
         test_dataset = dataset.loc[test_idx, :]
-        
 
     if not return_smiles:
         return train_dataset, valid_dataset, test_dataset
@@ -114,12 +126,24 @@ def scaffold_split(dataset, smiles_list, task_idx=None, null_value=0,
         train_smiles = [smiles_list[i][1] for i in train_idx]
         valid_smiles = [smiles_list[i][1] for i in valid_idx]
         test_smiles = [smiles_list[i][1] for i in test_idx]
-        return train_dataset, valid_dataset, test_dataset, (train_smiles,
-                                                            valid_smiles,
-                                                            test_smiles)
+        return (
+            train_dataset,
+            valid_dataset,
+            test_dataset,
+            (train_smiles, valid_smiles, test_smiles),
+        )
 
-def random_scaffold_split(dataset, smiles_list, task_idx=None, null_value=0,
-                   frac_train=0.8, frac_valid=0.1, frac_test=0.1, seed=0):
+
+def random_scaffold_split(
+    dataset,
+    smiles_list,
+    task_idx=None,
+    null_value=0,
+    frac_train=0.8,
+    frac_valid=0.1,
+    frac_test=0.1,
+    seed=0,
+):
     """
     Adapted from https://github.com/pfnet-research/chainer-chemistry/blob/master/chainer_chemistry/dataset/splitters/scaffold_splitter.py
     Split dataset by Bemis-Murcko scaffolds
@@ -182,9 +206,17 @@ def random_scaffold_split(dataset, smiles_list, task_idx=None, null_value=0,
 
     return train_dataset, valid_dataset, test_dataset
 
-def random_split(dataset, task_idx=None, null_value=0,
-                   frac_train=0.8, frac_valid=0.1, frac_test=0.1, seed=0,
-                 smiles_list=None):
+
+def random_split(
+    dataset,
+    task_idx=None,
+    null_value=0,
+    frac_train=0.8,
+    frac_valid=0.1,
+    frac_test=0.1,
+    seed=0,
+    smiles_list=None,
+):
     """
 
     :param dataset:
@@ -205,7 +237,9 @@ def random_split(dataset, task_idx=None, null_value=0,
         # filter based on null values in task_idx
         # get task array
         y_task = np.array([data.y[task_idx].item() for data in dataset])
-        non_null = y_task != null_value  # boolean array that correspond to non null values
+        non_null = (
+            y_task != null_value
+        )  # boolean array that correspond to non null values
         idx_array = np.where(non_null)[0]
         dataset = dataset[torch.tensor(idx_array)]  # examples containing non
         # null labels in the specified task_idx
@@ -217,10 +251,12 @@ def random_split(dataset, task_idx=None, null_value=0,
     all_idx = list(range(num_mols))
     random.shuffle(all_idx)
 
-    train_idx = all_idx[:int(frac_train * num_mols)]
-    valid_idx = all_idx[int(frac_train * num_mols):int(frac_valid * num_mols)
-                                                   + int(frac_train * num_mols)]
-    test_idx = all_idx[int(frac_valid * num_mols) + int(frac_train * num_mols):]
+    train_idx = all_idx[: int(frac_train * num_mols)]
+    valid_idx = all_idx[
+        int(frac_train * num_mols) : int(frac_valid * num_mols)
+        + int(frac_train * num_mols)
+    ]
+    test_idx = all_idx[int(frac_valid * num_mols) + int(frac_train * num_mols) :]
 
     assert len(set(train_idx).intersection(set(valid_idx))) == 0
     assert len(set(valid_idx).intersection(set(test_idx))) == 0
@@ -236,14 +272,17 @@ def random_split(dataset, task_idx=None, null_value=0,
         train_smiles = [smiles_list[i] for i in train_idx]
         valid_smiles = [smiles_list[i] for i in valid_idx]
         test_smiles = [smiles_list[i] for i in test_idx]
-        return train_dataset, valid_dataset, test_dataset, (train_smiles,
-                                                            valid_smiles,
-                                                            test_smiles)
+        return (
+            train_dataset,
+            valid_dataset,
+            test_dataset,
+            (train_smiles, valid_smiles, test_smiles),
+        )
 
 
-def cv_random_split(dataset, fold_idx = 0,
-                   frac_train=0.9, frac_valid=0.1, seed=0,
-                 smiles_list=None):
+def cv_random_split(
+    dataset, fold_idx=0, frac_train=0.9, frac_valid=0.1, seed=0, smiles_list=None
+):
     """
 
     :param dataset:
@@ -261,7 +300,7 @@ def cv_random_split(dataset, fold_idx = 0,
 
     np.testing.assert_almost_equal(frac_train + frac_valid, 1.0)
 
-    skf = StratifiedKFold(n_splits=10, shuffle = True, random_state = seed)
+    skf = StratifiedKFold(n_splits=10, shuffle=True, random_state=seed)
 
     labels = [data.y.item() for data in dataset]
 
@@ -283,82 +322,117 @@ if __name__ == "__main__":
     import pandas as pd
 
     # # test scaffold_split
-    dataset = MoleculeDataset('dataset/tox21', dataset='tox21')
-    smiles_list = pd.read_csv('dataset/tox21/processed/smiles.csv', header=None)[0].tolist()
+    dataset = MoleculeDataset("dataset/tox21", dataset="tox21")
+    smiles_list = pd.read_csv("dataset/tox21/processed/smiles.csv", header=None)[
+        0
+    ].tolist()
 
-    train_dataset, valid_dataset, test_dataset = scaffold_split(dataset, smiles_list, task_idx=None, null_value=0, frac_train=0.8,frac_valid=0.1, frac_test=0.1)
+    train_dataset, valid_dataset, test_dataset = scaffold_split(
+        dataset,
+        smiles_list,
+        task_idx=None,
+        null_value=0,
+        frac_train=0.8,
+        frac_valid=0.1,
+        frac_test=0.1,
+    )
     # train_dataset, valid_dataset, test_dataset = random_scaffold_split(dataset, smiles_list, task_idx=None, null_value=0, frac_train=0.8,frac_valid=0.1, frac_test=0.1, seed = 0)
-    unique_ids = set(train_dataset.data.id.tolist() +
-                     valid_dataset.data.id.tolist() +
-                     test_dataset.data.id.tolist())
+    unique_ids = set(
+        train_dataset.data.id.tolist()
+        + valid_dataset.data.id.tolist()
+        + test_dataset.data.id.tolist()
+    )
     assert len(unique_ids) == len(dataset)  # check that we did not have any
     # missing or overlapping examples
 
     # test scaffold_split with smiles returned
-    dataset = MoleculeDataset('dataset/bbbp', dataset='bbbp')
-    smiles_list = pd.read_csv('dataset/bbbp/processed/smiles.csv', header=None)[
-        0].tolist()
-    train_dataset, valid_dataset, test_dataset, (train_smiles, valid_smiles,
-                                                 test_smiles) =  \
-        scaffold_split(dataset, smiles_list, task_idx=None, null_value=0,
-                       frac_train=0.8,frac_valid=0.1, frac_test=0.1,
-                       return_smiles=True)
+    dataset = MoleculeDataset("dataset/bbbp", dataset="bbbp")
+    smiles_list = pd.read_csv("dataset/bbbp/processed/smiles.csv", header=None)[
+        0
+    ].tolist()
+    (
+        train_dataset,
+        valid_dataset,
+        test_dataset,
+        (train_smiles, valid_smiles, test_smiles),
+    ) = scaffold_split(
+        dataset,
+        smiles_list,
+        task_idx=None,
+        null_value=0,
+        frac_train=0.8,
+        frac_valid=0.1,
+        frac_test=0.1,
+        return_smiles=True,
+    )
     assert len(train_dataset) == len(train_smiles)
     for i in range(len(train_dataset)):
         data_obj_n_atoms = train_dataset[i].x.size()[0]
-        smiles_n_atoms = len(list(Chem.MolFromSmiles(train_smiles[
-                                                         i]).GetAtoms()))
+        smiles_n_atoms = len(list(Chem.MolFromSmiles(train_smiles[i]).GetAtoms()))
         assert data_obj_n_atoms == smiles_n_atoms
     assert len(valid_dataset) == len(valid_smiles)
     for i in range(len(valid_dataset)):
         data_obj_n_atoms = valid_dataset[i].x.size()[0]
-        smiles_n_atoms = len(list(Chem.MolFromSmiles(valid_smiles[
-                                                         i]).GetAtoms()))
+        smiles_n_atoms = len(list(Chem.MolFromSmiles(valid_smiles[i]).GetAtoms()))
         assert data_obj_n_atoms == smiles_n_atoms
     assert len(test_dataset) == len(test_smiles)
     for i in range(len(test_dataset)):
         data_obj_n_atoms = test_dataset[i].x.size()[0]
-        smiles_n_atoms = len(list(Chem.MolFromSmiles(test_smiles[
-                                                         i]).GetAtoms()))
+        smiles_n_atoms = len(list(Chem.MolFromSmiles(test_smiles[i]).GetAtoms()))
         assert data_obj_n_atoms == smiles_n_atoms
 
     # test random_split
     from loader import MoleculeDataset
 
-    dataset = MoleculeDataset('dataset/tox21', dataset='tox21')
-    train_dataset, valid_dataset, test_dataset = random_split(dataset, task_idx=None, null_value=0, frac_train=0.8,frac_valid=0.1, frac_test=0.1)
-    unique_ids = set(train_dataset.data.id.tolist() +
-                     valid_dataset.data.id.tolist() +
-                     test_dataset.data.id.tolist())
+    dataset = MoleculeDataset("dataset/tox21", dataset="tox21")
+    train_dataset, valid_dataset, test_dataset = random_split(
+        dataset,
+        task_idx=None,
+        null_value=0,
+        frac_train=0.8,
+        frac_valid=0.1,
+        frac_test=0.1,
+    )
+    unique_ids = set(
+        train_dataset.data.id.tolist()
+        + valid_dataset.data.id.tolist()
+        + test_dataset.data.id.tolist()
+    )
     assert len(unique_ids) == len(dataset)  # check that we did not have any
     # missing or overlapping examples
 
     # test random_split with smiles returned
-    dataset = MoleculeDataset('dataset/bbbp', dataset='bbbp')
-    smiles_list = pd.read_csv('dataset/bbbp/processed/smiles.csv', header=None)[
-        0].tolist()
-    train_dataset, valid_dataset, test_dataset, (train_smiles, valid_smiles,
-                                                 test_smiles) = \
-        random_split(dataset, task_idx=None, null_value=0,
-                       frac_train=0.8, frac_valid=0.1, frac_test=0.1, seed=42,
-                       smiles_list=smiles_list)
+    dataset = MoleculeDataset("dataset/bbbp", dataset="bbbp")
+    smiles_list = pd.read_csv("dataset/bbbp/processed/smiles.csv", header=None)[
+        0
+    ].tolist()
+    (
+        train_dataset,
+        valid_dataset,
+        test_dataset,
+        (train_smiles, valid_smiles, test_smiles),
+    ) = random_split(
+        dataset,
+        task_idx=None,
+        null_value=0,
+        frac_train=0.8,
+        frac_valid=0.1,
+        frac_test=0.1,
+        seed=42,
+        smiles_list=smiles_list,
+    )
     assert len(train_dataset) == len(train_smiles)
     for i in range(len(train_dataset)):
         data_obj_n_atoms = train_dataset[i].x.size()[0]
-        smiles_n_atoms = len(list(Chem.MolFromSmiles(train_smiles[
-                                                         i]).GetAtoms()))
+        smiles_n_atoms = len(list(Chem.MolFromSmiles(train_smiles[i]).GetAtoms()))
         assert data_obj_n_atoms == smiles_n_atoms
     assert len(valid_dataset) == len(valid_smiles)
     for i in range(len(valid_dataset)):
         data_obj_n_atoms = valid_dataset[i].x.size()[0]
-        smiles_n_atoms = len(list(Chem.MolFromSmiles(valid_smiles[
-                                                         i]).GetAtoms()))
+        smiles_n_atoms = len(list(Chem.MolFromSmiles(valid_smiles[i]).GetAtoms()))
         assert data_obj_n_atoms == smiles_n_atoms
     assert len(test_dataset) == len(test_smiles)
     for i in range(len(test_dataset)):
         data_obj_n_atoms = test_dataset[i].x.size()[0]
-        smiles_n_atoms = len(list(Chem.MolFromSmiles(test_smiles[
-                                                         i]).GetAtoms()))
+        smiles_n_atoms = len(list(Chem.MolFromSmiles(test_smiles[i]).GetAtoms()))
         assert data_obj_n_atoms == smiles_n_atoms
-
-

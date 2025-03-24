@@ -1,12 +1,14 @@
 """
 This code was copied from here https://github.com/deepchem/deepchem/blob/73c877a79d784220eec375aebae89d6efa71bfc8/deepchem/splits/splitters.py#L1481-L1615
 """
+
 import numpy as np
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, Union
 from .utils import remove_non_mols
 import pandas as pd
 from rdkit import Chem
 import torch_geometric
+
 
 # class ScaffoldSplitter(Splitter):
 class ScaffoldSplitter:
@@ -56,7 +58,7 @@ class ScaffoldSplitter:
         frac_test: float = 0.1,
         seed: Optional[int] = None,
         log_every_n: Optional[int] = 1000,
-        include_chirality=True
+        include_chirality=True,
     ) -> Tuple[List[int], List[int], List[int]]:
         """
         Splits internal compounds into train/validation/test by scaffold.
@@ -83,15 +85,17 @@ class ScaffoldSplitter:
             A tuple of train indices, valid indices, and test indices.
             Each indices is a list of integers.
         """
-        
+
         if isinstance(dataset, pd.DataFrame):
             dataset.reset_index(drop=True, inplace=True)
             smiles = dataset.smiles.values
         elif isinstance(dataset, torch_geometric.datasets.molecule_net.MoleculeNet):
             smiles = [i.smiles for i in dataset]
-        
-        np.testing.assert_almost_equal(frac_train + frac_valid + frac_test, 1.)
-        scaffold_sets = self.generate_scaffolds(smiles, include_chirality=include_chirality)
+
+        np.testing.assert_almost_equal(frac_train + frac_valid + frac_test, 1.0)
+        scaffold_sets = self.generate_scaffolds(
+            smiles, include_chirality=include_chirality
+        )
 
         train_cutoff = frac_train * len(dataset)
         valid_cutoff = (frac_train + frac_valid) * len(dataset)
@@ -102,20 +106,18 @@ class ScaffoldSplitter:
         print("About to sort in scaffold sets")
         for scaffold_set in scaffold_sets:
             if len(train_inds) + len(scaffold_set) > train_cutoff:
-                if len(train_inds) + len(valid_inds) + len(
-                        scaffold_set) > valid_cutoff:
+                if len(train_inds) + len(valid_inds) + len(scaffold_set) > valid_cutoff:
                     test_inds += scaffold_set
                 else:
                     valid_inds += scaffold_set
             else:
                 train_inds += scaffold_set
-                
-                
+
         if isinstance(dataset, pd.DataFrame):
             df_train = dataset.loc[train_inds, :]
             df_val = dataset.loc[valid_inds, :]
             df_test = dataset.loc[test_inds, :]
-    
+
             df_train.reset_index(drop=True, inplace=True)
             df_val.reset_index(drop=True, inplace=True)
             df_test.reset_index(drop=True, inplace=True)
@@ -124,15 +126,13 @@ class ScaffoldSplitter:
             df_train = dataset.index_select(train_inds)
             df_val = dataset.index_select(valid_inds)
             df_test = dataset.index_select(test_inds)
-            
-    # , train_inds, valid_inds, test_inds        
-        return df_train, df_val, df_test
-    
 
-    def generate_scaffolds(self,
-                           smiles_list,
-                           include_chirality,
-                           log_every_n: int = 1000) -> List[List[int]]:
+        # , train_inds, valid_inds, test_inds
+        return df_train, df_val, df_test
+
+    def generate_scaffolds(
+        self, smiles_list, include_chirality, log_every_n: int = 1000
+    ) -> List[List[int]]:
         """Returns all scaffolds from the dataset.
 
         Parameters
@@ -166,16 +166,16 @@ class ScaffoldSplitter:
         scaffolds = {key: sorted(value) for key, value in scaffolds.items()}
         scaffold_sets = [
             scaffold_set
-            for (scaffold,
-                 scaffold_set) in sorted(scaffolds.items(),
-                                         key=lambda x: (len(x[1]), x[1][0]),
-                                         reverse=True)
+            for (scaffold, scaffold_set) in sorted(
+                scaffolds.items(), key=lambda x: (len(x[1]), x[1][0]), reverse=True
+            )
         ]
         return scaffold_sets
 
-    
-def _generate_scaffold(smiles: str,
-                       include_chirality: bool = False) -> Union[str, None]:
+
+def _generate_scaffold(
+    smiles: str, include_chirality: bool = False
+) -> Union[str, None]:
     """Compute the Bemis-Murcko scaffold for a SMILES string.
 
     Bemis-Murcko scaffolds are described in DOI: 10.1021/jm9602928.
@@ -212,8 +212,8 @@ def _generate_scaffold(smiles: str,
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         logger.info(
-            'Not generating scaffold for smiles %s - invalid smiles string' %
-            smiles)
+            "Not generating scaffold for smiles %s - invalid smiles string" % smiles
+        )
         return None
 
     scaffold = MurckoScaffoldSmiles(mol=mol, includeChirality=include_chirality)
