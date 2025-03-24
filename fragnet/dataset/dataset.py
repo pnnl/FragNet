@@ -18,6 +18,14 @@ from .data import CreateDataCDRP
 # pretrain dataset
 def get_pt_dataset(df, data_type, maxiters=200, frag_type="brics"):
 
+    """
+    Creates a pretrain dataset.
+
+    Args:
+        df: DataFrame containing the SMILES
+        data_type: determines the feature type
+    """
+
     feature_type = "one_hot"
     create_bond_graph_data = True
     add_dhangles = True
@@ -56,6 +64,14 @@ def get_pt_dataset(df, data_type, maxiters=200, frag_type="brics"):
 
 class FinetuneData:
 
+    """
+    The main class to create finetune data
+
+    Attributes:
+        frag_type (str): fragment type (brics or murcko).
+        target_name (str): name of the target proprty.
+        data_type (str): determines the features.
+    """
     def __init__(self, target_name, data_type, **kwargs):
         self.frag_type = kwargs.get("frag_type", "brics")
         self.target = target_name
@@ -136,6 +152,9 @@ class FinetuneDataDTA:
 
 class FinetuneDataCDRP:
 
+    """
+    To create finetune data for Cancer Drug Response Prediction
+    """
     def __init__(self, target_name, data_type, args, use_genes=False):
         self.target = target_name
         self.data_type = data_type
@@ -205,6 +224,9 @@ class FinetuneDataCDRP:
 
 class FinetuneMultiConfData:
 
+    """
+    To create finetune data containing multiple conformers
+    """
     def __init__(self, target_name, data_type, **kwargs):
         self.frag_type = kwargs["frag_type"]
         self.maxiters = 500
@@ -280,6 +302,10 @@ def get_raw_data(dataset):
 
 class LoadDataSets:
 
+    """
+    Class for dataset loading. 
+    Used in train/pretrain/pretrain_gat_mol.py 
+    """
     def __init__(self):
         self.remove_duplicates_and_add = self.remove_duplicates_and_add1
 
