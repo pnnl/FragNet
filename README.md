@@ -71,7 +71,7 @@ Creating data for finetuning for MoleculeNet datasets can be done as follows,
 
 - dataset_name: dataset type
 - dataset_subset: dataset sub-type
-- use_molebert: whether to use the dataset splitting method to used by MoleBert model
+- use_molebert: whether to use the dataset splitting method used by MoleBert model
 
 ------
 
