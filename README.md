@@ -7,6 +7,22 @@ FragNet is a Graph Neural Network designed for molecular property prediction, th
 <!-- ![alt text](fragnet/assets/fragnet.png) -->
 <img src="fragnet/assets/fragnet.png" alt="drawing" width="500"/>
 
+Figure 1: FragNet’s architecture and data representation. (a) Atom and Fragment graphs’
+edge features are learned from Bond and Fragment connection graphs respectively. b) Initial
+fragment features for the fragment graph are the summation of the updated atom features
+that compose the fragment. (c) Illustration of FragNet’s message passing taking place be-
+tween two non-covalently bonded substructures. Fragment-Fragment connections are also
+present between adjacent fragments in each non-covalently bonded structure of the com-
+pound.
+
+<img src="fragnet/assets/weights_main.png" alt="drawing" width="500"/>
+
+Figure 2: Different types of attention weights and contribution values available in FragNet visualized for CC[NH+](CCCl)CCOc1cccc2ccccc12.[Cl-] with atom, bond, and fragment at-
+tention weights shown in (a),(b), and (c) and fragment contribution values shown in (d).
+The top table provides the atom to fragment mapping and the bottom table provides the
+fragment connection attention weights. Atom and bond attention weights are scaled to val-
+ues between 0 and 1. The fragment and fragment connection weights are not scaled. The
+numbers in blue boxes in (d) correspond to Fragment IDs in ‘Atoms in Fragments’ table.
 # Usage
 
 ### Installation
