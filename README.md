@@ -17,7 +17,7 @@ pound.
 
 <img src="fragnet/assets/weights_main.png" alt="drawing" width="500"/>
 
-Figure 2: Different types of attention weights and contribution values available in FragNet visualized for CC[NH+](CCCl)CCOc1cccc2ccccc12.[Cl-] with atom, bond, and fragment at-
+Figure 2: Different types of attention weights and contribution values available in FragNet visualized for $CC[NH+](CCCl)CCOc1cccc2ccccc12.[Cl-]$ with atom, bond, and fragment at-
 tention weights shown in (a),(b), and (c) and fragment contribution values shown in (d).
 The top table provides the atom to fragment mapping and the bottom table provides the
 fragment connection attention weights. Atom and bond attention weights are scaled to val-
