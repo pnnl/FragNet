@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+build/
+dist/
+*.egg-info/
+.DS_Store
+.env
+.ipynb_checkpoints/
+fragnet/assets/*.png

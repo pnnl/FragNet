@@ -148,6 +148,23 @@ If you use our work, please cite it as,
 }
 ```
 
+## Docker
+
+To run the FragNet Streamlit app in a Docker container:
+
+1. Build the Docker image:
+      ```sh
+      docker build -t fragnet-app .
+      ```
+2. Run the container:
+      ```sh
+      docker run -p 8501:8501 fragnet-app
+      ```
+
+This will start the app at [http://localhost:8501](http://localhost:8501).
+
+**Note:** The Dockerfile installs required system libraries (e.g., `libxrender1`, `libxext6`) and Python build tools for compatibility with scientific packages. If you encounter missing library errors, install the relevant system package in the Dockerfile.
+
 
 <br/>
 <h1 style="text-align:center;">Disclaimer</h1>
