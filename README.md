@@ -28,8 +28,7 @@ numbers in blue boxes in (d) correspond to Fragment IDs in ‘Atoms in Fragments
 **New to FragNet?** The fastest way to get started:
 
 1. **Install FragNet** (see Installation section below)
-2. **Try the Interactive Demo**: Open `FragNet_Interactive_Demo.ipynb` in Jupyter and run all cells
-3. **Explore visualizations**: See how atoms, bonds, and fragments contribute to predictions
+2. **Explore visualizations**: See how atoms, bonds, and fragments contribute to predictions
 
 For the web application or advanced usage, continue reading below.
 # Usage
@@ -126,8 +125,7 @@ FragNet provides multiple user-friendly ways to interact with the model and visu
 
 We provide two ready-to-use Jupyter notebooks that require no additional setup beyond installation:
 
-1. **FragNet_Interactive_Demo.ipynb** - A comprehensive, beginner-friendly notebook with detailed explanations
-2. **fragnet/notebooks/interprete.ipynb** - A streamlined notebook for quick interpretability analysis
+- **fragnet/notebooks/interprete.ipynb** - A streamlined notebook for quick interpretability analysis
 
 **How to use:**
 ```bash
