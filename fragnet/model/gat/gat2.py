@@ -14,7 +14,29 @@ import random
 Contains the graph attention layer, FragNet model and the regression heads
 """
 
-
+def find_flipped_pairs(edge_list):
+    """
+    Find pairs of edges that are flipped versions of each other.
+    Returns a dictionary mapping edge tuples to their row indices.
+    """
+    flipped_pairs = {}
+    
+    # Convert to list of tuples for easier processing
+    edges = list(zip(edge_list[0], edge_list[1]))
+    
+    for i, (src, dst) in enumerate(edges):
+        # Create the edge tuple (smaller index first for consistency)
+        edge = tuple(sorted([src, dst]))
+        
+        if edge not in flipped_pairs:
+            flipped_pairs[edge] = []
+        flipped_pairs[edge].append(i)
+    
+    # Filter to only return edges that appear more than once (flipped pairs)
+    result = {edge: indices for edge, indices in flipped_pairs.items() if len(indices) > 1}
+    
+    return result
+    
 class FragNetLayerA(nn.Module):
     def __init__(
         self,
@@ -30,6 +52,9 @@ class FragNetLayerA(nn.Module):
         fbond_edge_in=8,
         return_attentions=False,
         add_frag_self_loops=False,
+        bond_mask = None,
+        frag_bond_mask=None,
+        atom_mask_individual=None
     ):
         super().__init__()
 
@@ -89,6 +114,10 @@ class FragNetLayerA(nn.Module):
         nn.init.xavier_uniform_(self.f.data, gain=1.414)
         nn.init.xavier_uniform_(self.f_a_b.data, gain=1.414)
 
+        self.bond_mask = bond_mask
+        self.frag_bond_mask = frag_bond_mask
+        self.atom_mask_individual = atom_mask_individual
+
     def forward(
         self,
         x_atoms,
@@ -139,10 +168,18 @@ class FragNetLayerA(nn.Module):
 
         new_bond_features = node_feats_sum_b.view(num_nodes_b, -1)
 
+        # Apply the bond mask here.
+        print(f'bond mask value: {self.bond_mask}')
+        if self.bond_mask is not None:
+            print('applying bond mask')
+            with torch.no_grad():
+                new_bond_features[self.bond_mask:self.bond_mask+2, :] = 0.0
+        
         # new bond features from bond graph
         edge_index, _ = add_self_loops(edge_index=edge_index)
 
         self_loop_attr = torch.zeros(x_atoms.size(0), self.edge_out, dtype=torch.long)
+        # TODO: use a nn transform concatenated new_bond_features and edge_attr to new edge_attr
         edge_attr = torch.cat(
             (new_bond_features, self_loop_attr.to(edge_attr)), dim=0
         )  # <- new
@@ -182,13 +219,39 @@ class FragNetLayerA(nn.Module):
         summed_attn_weights_atoms = scatter_add(
             attn_probs, source, dim=0
         )  # total attention attributed to each node in the atom graph, or each edge in the atom graph
+
+        # new atom features
         x_atoms_new = node_feats_sum_a.view(num_nodes_a, -1)
+
+        # apply the mask for atom
+        if self.atom_mask_individual is not None:
+            # print(x_atoms_new, x_atoms_new.shape)
+            with torch.no_grad():
+                print('applying atom mask')
+                x_atoms_new[self.atom_mask_individual, :] = 0.0
+            print(x_atoms_new, x_atoms_new.shape)
+        # new fragment features
         x_frags = scatter_add(src=x_atoms_new, index=atom_to_frag_ids, dim=0)
+
+
 
         # get frag bond features.
         target, source = edge_index_fbond_graph
 
+        
         edge_attr_fbond_graph = self.edge_attr_fbond_embed(edge_attr_fbond_graph)
+
+        flipped_pairs = find_flipped_pairs(edge_attr_fbond_graph.numpy())
+        flipped_pairs_values = list(flipped_pairs.values())
+        
+        # apply the mask for fragment bond
+        if self.frag_bond_mask is not None:
+            with torch.no_grad():
+                print('applying fragment bond mask')
+                edge_attr_fbond_graph[ flipped_pairs_values[self.frag_bond_mask][0], :] = 0.0
+                edge_attr_fbond_graph[ flipped_pairs_values[self.frag_bond_mask][1], :] = 0.0
+                
+                
         ea_fbonds = edge_attr_fbond_graph.repeat(self.num_heads, 1, 1).permute(1, 0, 2)
         num_nodes_fb = node_feautures_fbond_graph.size(0)
         node_feats_fb = self.projection_fb(node_feautures_fbond_graph)
@@ -220,6 +283,8 @@ class FragNetLayerA(nn.Module):
 
         # get frag bond features
         edge_attr_fbond_new = new_fbond_features
+
+        # TODO: apply mask to edge_attr_fbond_new
 
         source, target = frag_index
         num_nodes_f = x_frags.size(0)
@@ -280,7 +345,7 @@ class FragNet(nn.Module):
         emb_dim=128,
         atom_features=167,
         frag_features=167,
-        edge_features=16,
+        edge_features=17,
         fedge_in=6,
         fbond_edge_in=6,
         num_heads=4,
@@ -706,7 +771,7 @@ class FragNetFineTune(nn.Module):
         n_classes=1,
         atom_features=167,
         frag_features=167,
-        edge_features=16,
+        edge_features=17,
         num_layer=4,
         num_heads=4,
         drop_ratio=0.15,

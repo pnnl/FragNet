@@ -45,7 +45,8 @@ from fragnet.train.pretrain.pretrain_heads import PretrainTask
 class FragNetViz(nn.Module):
 
     def __init__(self, num_layer, drop_ratio = 0.2, emb_dim=128, 
-                 atom_features=167, frag_features=167, edge_features=17, fedge_in=6, fbond_edge_in=6, num_heads=4):
+                 atom_features=167, frag_features=167, edge_features=17, fedge_in=6, fbond_edge_in=6, num_heads=4,
+                bond_mask=None):
         super().__init__()
         self.num_layer = num_layer
         self.dropout = nn.Dropout(p=drop_ratio)
@@ -53,19 +54,19 @@ class FragNetViz(nn.Module):
 
         self.layers = torch.nn.ModuleList()
         self.layers.append(FragNetLayerA(atom_in=atom_features, atom_out=emb_dim, frag_in=frag_features, 
-                                   frag_out=emb_dim, edge_in=edge_features, fedge_in=fedge_in, fbond_edge_in=fbond_edge_in, edge_out=emb_dim, num_heads=num_heads))
+                                   frag_out=emb_dim, edge_in=edge_features, fedge_in=fedge_in, fbond_edge_in=fbond_edge_in, edge_out=emb_dim, num_heads=num_heads, bond_mask=bond_mask))
         
 
         for i in range(num_layer-2):
             self.layers.append(FragNetLayerA(atom_in=emb_dim, atom_out=emb_dim, frag_in=emb_dim, 
                                    frag_out=emb_dim, edge_in=emb_dim, edge_out=emb_dim, fedge_in=emb_dim,
                                              fbond_edge_in=fbond_edge_in,
-                                    num_heads=num_heads))
+                                    num_heads=num_heads, bond_mask=bond_mask))
             
         self.layers.append(FragNetLayerA(atom_in=emb_dim, atom_out=emb_dim, frag_in=emb_dim, 
                                    frag_out=emb_dim, edge_in=emb_dim, edge_out=emb_dim, fedge_in=emb_dim,
                                          fbond_edge_in=fbond_edge_in,
-                                    num_heads=num_heads, return_attentions=True))
+                                    num_heads=num_heads, bond_mask=bond_mask, return_attentions=True))
 
 
     #def forward(self, x, edge_index, edge_attr):
@@ -147,13 +148,15 @@ class FragNetFineTuneViz(nn.Module):
     
     def __init__(self, n_classes=1, atom_features=167, frag_features=167, edge_features=16, 
                  num_layer=4, num_heads=4, drop_ratio=0.15,
-                h1=256, h2=256, h3=256, h4=256, act='celu',emb_dim=128, fthead='FTHead3'):
+                h1=256, h2=256, h3=256, h4=256, act='celu',emb_dim=128, fthead='FTHead3',
+                bond_mask=None):
         super().__init__()
         
 
         self.pretrain = FragNetViz(num_layer=num_layer, drop_ratio=drop_ratio, 
                                 num_heads=num_heads, emb_dim=emb_dim,
-                                atom_features=atom_features, frag_features=frag_features, edge_features=edge_features)
+                                atom_features=atom_features, frag_features=frag_features, edge_features=edge_features,
+                                  bond_mask=bond_mask)
         # self.lin1 = nn.Linear(emb_dim*2, h1)
         # self.out = nn.Linear(h1, n_classes)
         # self.dropout = nn.Dropout(p=drop_ratio)

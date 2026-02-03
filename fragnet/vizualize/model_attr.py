@@ -96,8 +96,9 @@ class FragNet(nn.Module):
         x_atoms = self.dropout(x_atoms)
         x_frags = self.dropout(x_frags)
         
-        
-        
+        # before passing through each layer, the features of masked atoms or bonds should be set equal to zero.
+
+    
         x_atoms, x_frags, edge_features, fedge_features = self.layers[0](x_atoms, edge_index, edge_attr, 
                                frag_index, x_frags, atom_to_frag_ids,
                                node_feautures_bond_graph,edge_index_bonds_graph,edge_attr_bond_graph,

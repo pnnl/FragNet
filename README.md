@@ -23,6 +23,15 @@ The top table provides the atom to fragment mapping and the bottom table provide
 fragment connection attention weights. Atom and bond attention weights are scaled to val-
 ues between 0 and 1. The fragment and fragment connection weights are not scaled. The
 numbers in blue boxes in (d) correspond to Fragment IDs in ‘Atoms in Fragments’ table.
+## Quick Start
+
+**New to FragNet?** The fastest way to get started:
+
+1. **Install FragNet** (see Installation section below)
+2. **Try the Interactive Demo**: Open `FragNet_Interactive_Demo.ipynb` in Jupyter and run all cells
+3. **Explore visualizations**: See how atoms, bonds, and fragments contribute to predictions
+
+For the web application or advanced usage, continue reading below.
 # Usage
 
 ### Installation
@@ -109,11 +118,63 @@ python train/finetune/finetune_gat2.py --config exps/ft/esol/e1pt4.yaml
 
 ------
 
-## Interactive Web Application
+## Interactive Applications
 
-To run this application, run the command `streamlit run fragnet/vizualize/app.py` from the root directory
+FragNet provides multiple user-friendly ways to interact with the model and visualize molecular property predictions:
+
+### Option 1: Interactive Jupyter Notebooks (Recommended for Beginners)
+
+We provide two ready-to-use Jupyter notebooks that require no additional setup beyond installation:
+
+1. **FragNet_Interactive_Demo.ipynb** - A comprehensive, beginner-friendly notebook with detailed explanations
+2. **fragnet/notebooks/interprete.ipynb** - A streamlined notebook for quick interpretability analysis
+
+**How to use:**
+```bash
+# Navigate to the FragNet directory
+cd /path/to/FragNet
+
+# Launch Jupyter
+jupyter notebook
+
+# Open either FragNet_Interactive_Demo.ipynb or fragnet/notebooks/interprete.ipynb
+# Run all cells (Cell → Run All) and follow the inline instructions
+```
+
+These notebooks provide:
+- Step-by-step guidance with clear explanations
+- Pre-configured examples you can run immediately
+- Visualizations of atom weights, bond contributions, and fragment attributions
+- Easy modification of SMILES strings to analyze your own molecules
+
+### Option 2: Interactive Web Application
+
+For a browser-based GUI experience, you can launch the Streamlit application:
+
+**Prerequisites:**
+- Ensure FragNet is installed (see Installation section above)
+- Install Streamlit: `pip install streamlit streamlit-ketcher`
+
+**To launch the application:**
+```bash
+# From the root FragNet directory
+streamlit run fragnet/vizualize/app.py
+```
+
+The application will open in your browser at `http://localhost:8501`
+
+**Features:**
+- Draw molecules directly in the browser using the Ketcher molecular editor
+- Input SMILES strings for prediction
+- Select different property types (Solubility, Lipophilicity, Energy, Drug Response)
+- Interactive visualizations of molecular interpretability
 
 <img src="fragnet/assets/app.png" alt="drawing" width="500"/>
+
+**Troubleshooting:**
+- If the app doesn't open automatically, manually navigate to `http://localhost:8501`
+- Ensure no other applications are using port 8501
+- Check that all dependencies are installed: `pip install -r requirements.txt`
 
 ------
 
