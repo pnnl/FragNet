@@ -9,7 +9,7 @@ from fragnet.vizualize.model_attr import get_attr_image
 # Initial page config
 
 st.set_page_config(
-     page_title='FragNet Visualize',
+     page_title='FragNet',
      layout="wide",
      initial_sidebar_state="expanded",
      page_icon="🧪"
@@ -78,7 +78,8 @@ def resolve_DRP(smiles, cell_line, cell_line_df):
 
 
 # st.sidebar.markdown('''[<img src='data:image/png;base64,{}' class='img-fluid' width=32 height=32>](https://streamlit.io/)'''.format(img_to_bytes("logomark_website.png")), unsafe_allow_html=True)
-st.sidebar.title('🧪 FragNet Visualize')
+st.sidebar.title('🧬 FragNet')
+st.sidebar.markdown("**Interpretable graph neural network predictions with fragment-based analysis**")
 st.sidebar.markdown('---')
 
 st.sidebar.subheader("⚙️ Configuration")
@@ -107,7 +108,7 @@ selected = st.sidebar.text_input(
 selected = st_ketcher(selected)
 
 st.sidebar.markdown('---')
-st.sidebar.subheader("🎨 Display Options")
+# st.sidebar.subheader("🎨 Display Options")
 
 # if prop_type=="DRP":
 
@@ -144,20 +145,21 @@ if prop_type in ["Solubility", "Lipophilicity", "Energy"]:
 #     viz, prop_prediction, model_config, chkpt_path = resolve_DRP(selected, cell_line, cell_line_df)
 
 # Main title
-st.title("🧬 FragNet Molecular Property Visualization")
-st.markdown("**Interpretable graph neural network predictions with fragment-based analysis**")
-st.markdown('---')
+# st.title("🧬 FragNet Molecular Property Visualization")
+
+# st.markdown('---')
 
 # Display prediction in a prominent metric card
-if prop_type == "Solubility":
-    st.metric(label="📊 Predicted Solubility (logS)", value=f"{prop_prediction:.4f}")
-elif prop_type == "Lipophilicity":
-    st.metric(label="📊 Predicted Lipophilicity", value=f"{prop_prediction:.4f}")
-elif prop_type == "Energy":
-    st.metric(label="📊 Predicted Energy", value=f"{prop_prediction:.4f}")
+with st.sidebar:
+    if prop_type == "Solubility":
+        st.metric(label="📊 Predicted Solubility (logS)", value=f"{prop_prediction:.4f}")
+    elif prop_type == "Lipophilicity":
+        st.metric(label="📊 Predicted Lipophilicity", value=f"{prop_prediction:.4f}")
+    elif prop_type == "Energy":
+        st.metric(label="📊 Predicted Energy", value=f"{prop_prediction:.4f}")
 
-st.markdown('---')
-st.header("🔍 Analysis")
+# st.markdown('---')
+# st.header("🔍 Analysis")
 
 col1, col2, col3 = st.columns(3)
 
