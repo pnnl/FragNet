@@ -1,8 +1,8 @@
 # FragNet
 
 FragNet is a Graph Neural Network designed for molecular property prediction, that can offer insights into how different substructures influence the predictions. More details of FragNet can be found in our paper,
-[FragNet: A Graph Neural Network for Molecular Property Prediction with Four Layers of Interpretability](https://arxiv.org/abs/2410.12156).
-
+<!-- [FragNet: A Graph Neural Network for Molecular Property Prediction with Four Layers of Interpretability](https://arxiv.org/abs/2410.12156). -->
+[FragNet: A Graph Neural Network for Molecular Property Prediction with Four Levels of Interpretability](https://pubs.acs.org/doi/10.1021/jacs.5c22620)
 
 <!-- ![alt text](fragnet/assets/fragnet.png) -->
 <img src="fragnet/assets/fragnet.png" alt="drawing" width="500"/>
