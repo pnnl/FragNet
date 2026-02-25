@@ -33,6 +33,8 @@ from fragnet.dataset.data import collate_fn_cdrp
 import copy
 import torch.nn as nn
 from fragnet.vizualize.model import FragNetPreTrainViz, FragNetViz
+from fragnet.dataset.data import get_incr_atom_id_frag_id_nodes, get_incr_atom_nodes, get_incr_bond_nodes, get_incr_frag_nodes, get_incr_fbond_nodes
+from fragnet.vizualize.config import PROP_LIST
 
 # MODEL_CONFIG = config.MODEL_CONFIG
 # MODEL_PATH = config.MODEL_PATH
@@ -413,6 +415,66 @@ def df_frag_weights(batch, summed_attn_weights_fbonds):
 
 import ast
 
+def collate_fn_for_bond_mask(data_list):
+    """Collate function for dataloader when using atom or bond masking"""
+    # atom features
+    x_atoms_batch = torch.cat([i.x_atoms for i in data_list], dim=0)
+    # bond indices
+    edge_index = torch.cat([i.edge_index for i in data_list], dim=1)
+    incr_atom_nodes = get_incr_atom_nodes(data_list)
+    edge_index = edge_index + incr_atom_nodes
+
+    edge_attr = torch.cat([i.edge_attr for i in data_list], dim=0)
+    cnx_attr = torch.cat([i.cnx_attr for i in data_list], dim=0)
+    
+    frag_index = torch.cat([i.frag_index for i in data_list], dim=1)
+    incr_frag_nodes = get_incr_frag_nodes(data_list)
+    frag_index = frag_index + incr_frag_nodes
+
+    x_frags = torch.cat([i.x_frags for i in data_list], dim=0)
+    
+    batch = torch.cat([torch.zeros(data_list[i].x_atoms.shape[0]) + i for i in range(len(data_list)) ])    
+    frag_batch = torch.cat([torch.zeros(data_list[i].n_frags.item() ) + i for i in range(len(data_list)) ])
+    
+    atom_to_frag_ids = torch.cat([i.atom_id_frag_id for i in data_list], dim=0)
+    incr_atomfrag_ids = get_incr_atom_id_frag_id_nodes(data_list)
+    atom_to_frag_ids = atom_to_frag_ids + incr_atomfrag_ids
+    
+    # for bond graph
+    node_features_bonds = torch.cat([i.node_features_bonds for i in data_list], dim=0)
+    edge_index_bonds_graph = torch.cat([i.edge_index_bonds for i in data_list], dim=1)
+    incr_bonds_nodes=get_incr_bond_nodes(data_list)
+    edge_index_bonds_graph = edge_index_bonds_graph + incr_bonds_nodes
+    edge_attr_bonds = torch.cat([i.edge_attr_bonds for i in data_list], dim=0)
+
+    # for frag graph
+    node_features_fragbonds = torch.cat([i.node_feautures_fbondg for i in data_list], dim=0)
+    edge_index_fragbonds = torch.cat([i.edge_index_fbondg for i in data_list], dim=1)  
+    incr_bonds_nodes = get_incr_fbond_nodes(data_list)   
+    incr_bonds_nodes = incr_bonds_nodes.to(torch.long) 
+    edge_index_fragbonds = edge_index_fragbonds + incr_bonds_nodes
+    edge_attr_fragbonds = torch.cat([i.edge_attr_fbondg for i in data_list], dim=0)
+    
+    y = torch.cat([i.y for i in data_list], dim=0)
+    
+    return {'x_atoms': x_atoms_batch,
+           'edge_index': edge_index.type(torch.long),
+            'frag_index': frag_index.type(torch.long),
+            'x_frags': x_frags,
+            'edge_attr': edge_attr,
+            'cnx_attr' : cnx_attr,
+            'batch':batch.type(torch.long),
+            'frag_batch':frag_batch.type(torch.long),
+            'atom_to_frag_ids': atom_to_frag_ids.type(torch.long),
+            'node_features_bonds':node_features_bonds,
+            'edge_index_bonds_graph':edge_index_bonds_graph.type(torch.long),
+            'edge_attr_bonds':edge_attr_bonds,
+            'node_features_fbonds':node_features_fragbonds,
+            'edge_index_fbonds':edge_index_fragbonds,
+            'edge_attr_fbonds': edge_attr_fragbonds,
+            'y': y.type(torch.float),
+            }
+
 def get_frags(smiles):
     mol = get_3Dcoords(smiles)
     conf = mol.GetConformer(id=0)
@@ -590,6 +652,9 @@ class FragNetVizApp:
         train = pd.DataFrame.from_dict({'smiles': [smiles], 'log_sol': [1.]})
         ds = self.dataset.get_ft_dataset(train)
         ds = extract_data(ds)
+        
+        # Store the data item for contribution calculations
+        self.data_item = ds[0]
 
         test_loader = DataLoader(ds, collate_fn=collate_fn, batch_size=1, shuffle=False, drop_last=False)
 
@@ -832,3 +897,351 @@ class FragNetVizApp:
 
         return png_frag_attn, png_frag_highlight, dffw, dfw2, atoms_in_frags
         # return png_frag
+
+    def calc_atom_contributions(self, data_item, prop_type='Solubility'):
+        """
+        Calculate atom contributions by masking individual atoms and comparing predictions.
+        
+        Args:
+            data_item: A data sample containing molecule information
+            prop_type: Type of property prediction ('Solubility', 'Lipophilicity', etc.)
+            
+        Returns:
+            DataFrame with columns: ['atom_index', 'atom_type', 'attr', 'pred_no_mask', 'pred_mask']
+        """
+        n_atom_features = data_item.x_atoms.shape[0]
+        graph, frags = get_frags(data_item.smiles)
+        mol = graph.mol
+        
+        assert mol.GetNumAtoms() == n_atom_features
+        
+        results = []
+        
+        # Get prediction without masking
+        pred_no_mask = self._no_mask_prediction([data_item], prop_type)
+        
+        # Calculate contribution for each atom
+        for i in range(n_atom_features):
+            pred_mask = self._mask_prediction([data_item], prop_type, i)
+            attribution = (pred_no_mask - pred_mask).numpy().ravel()
+            
+            atom_type = mol.GetAtomWithIdx(i).GetSymbol()
+            
+            results.append([i, atom_type, attribution.item(),
+                          pred_no_mask.item(), pred_mask.item()])
+        
+        df_results = pd.DataFrame(results, columns=['atom_index', 'atom_type', 'attr', 
+                                                     'pred_no_mask', 'pred_mask'])
+        
+        return df_results
+
+    def _no_mask_prediction(self, dataset, prop_type):
+        """Get prediction without masking any atoms"""
+        model_no_mask = copy.deepcopy(self.model)
+        model_no_mask.eval()
+        
+        if prop_type == 'DRP':
+            test_loader = DataLoader(dataset, collate_fn=collate_fn_cdrp, batch_size=len(dataset), 
+                                    shuffle=False, drop_last=False)
+        else:
+            test_loader = DataLoader(dataset, collate_fn=collate_fn_for_bond_mask, batch_size=len(dataset), 
+                                    shuffle=False, drop_last=False)
+        
+        batch = next(iter(test_loader))
+        
+        with torch.no_grad():
+            if prop_type in PROP_LIST:
+                pred_no_mask = model_no_mask(batch)
+            elif prop_type == 'Energy':
+                _, _, _, pred_no_mask = model_no_mask(batch)
+        
+        return pred_no_mask
+
+    def _mask_prediction(self, dataset, prop_type, atom_mask_individual):
+        """Get prediction with specific atom masked"""
+        # Create a masked version of the model
+        from fragnet.vizualize.model import FragNetFineTuneViz
+        
+        # Get model parameters from existing model
+        if hasattr(self.model, 'pretrain'):
+            pretrain_model = self.model.pretrain if hasattr(self.model, 'pretrain') else self.model.drug_model.pretrain
+        else:
+            pretrain_model = self.viz_model.pretrain
+        
+        model_mask = FragNetFineTuneViz(
+            n_classes=getattr(self.model, 'n_classes', 1),
+            atom_features=pretrain_model.layers[0].atom_in,
+            frag_features=pretrain_model.layers[0].frag_in,
+            edge_features=pretrain_model.layers[0].edge_in,
+            num_layer=len(pretrain_model.layers),
+            drop_ratio=0.15,
+            num_heads=4,
+            emb_dim=128,
+            apply_mask=True,
+            atom_mask_individual=atom_mask_individual)
+        
+        # Load weights from the current model
+        try:
+            model_mask.load_state_dict(self.model.state_dict(), strict=False)
+        except:
+            # If direct loading fails, try loading just the pretrain part
+            model_dict = model_mask.state_dict()
+            pretrained_dict = {k: v for k, v in self.model.state_dict().items() if k in model_dict}
+            model_dict.update(pretrained_dict)
+            model_mask.load_state_dict(model_dict)
+        
+        model_mask.eval()
+        
+        if prop_type == 'DRP':
+            test_loader = DataLoader(dataset, collate_fn=collate_fn_cdrp, batch_size=len(dataset),
+                                    shuffle=False, drop_last=False)
+        else:
+            test_loader = DataLoader(dataset, collate_fn=collate_fn_for_bond_mask, batch_size=len(dataset),
+                                    shuffle=False, drop_last=False)
+        
+        batch = next(iter(test_loader))
+        
+        with torch.no_grad():
+            if prop_type in PROP_LIST:
+                pred_mask = model_mask(batch)
+            elif prop_type == 'Energy':
+                _, _, _, pred_mask = model_mask(batch)
+        
+        return pred_mask
+
+    def calc_bond_contributions(self, data_item, prop_type='Solubility'):
+        """
+        Calculate bond contributions by masking individual bonds and comparing predictions.
+        
+        Args:
+            data_item: A data sample containing molecule information
+            prop_type: Type of property prediction ('Solubility', 'Lipophilicity', etc.)
+            
+        Returns:
+            DataFrame with columns: ['bond_index', 'bond_type', 'begin_atom', 'end_atom', 'attr', 'pred_no_mask', 'pred_mask']
+        """
+        n_bond_features = data_item.edge_attr.shape[0]
+        graph, frags = get_frags(data_item.smiles)
+        mol = graph.mol
+        
+        results = []
+        
+        # Get prediction without masking
+        pred_no_mask = self._no_mask_prediction([data_item], prop_type)
+        
+        # Calculate contribution for each bond (iterate in steps of 2 due to bidirectional edges)
+        for i in range(0, n_bond_features, 2):
+            pred_mask = self._mask_prediction_bond([data_item], prop_type, i)
+            attribution = (pred_no_mask - pred_mask).numpy().ravel()
+            
+            bond_index = (data_item.edge_index[0][i].item(), data_item.edge_index[1][i].item())
+            bond = mol.GetBondBetweenAtoms(bond_index[0], bond_index[1])
+            
+            bond_type = str(bond.GetBondType())
+            begin_atom_type = bond.GetBeginAtom().GetAtomicNum()
+            end_atom_type = bond.GetEndAtom().GetAtomicNum()
+            
+            results.append([i, bond_type, begin_atom_type, end_atom_type, attribution.item(),
+                          pred_no_mask.item(), pred_mask.item()])
+        
+        df_results = pd.DataFrame(results, columns=['bond_index', 'bond_type', 'begin_atom',
+                                                    'end_atom', 'attr', 'pred_no_mask', 'pred_mask'])
+        
+        return df_results
+
+    def _mask_prediction_bond(self, dataset, prop_type, bond_mask):
+        """Get prediction with specific bond masked"""
+        # Create a masked version of the model
+        from fragnet.vizualize.model import FragNetFineTuneViz
+        
+        # Get model parameters from existing model
+        if hasattr(self.model, 'pretrain'):
+            pretrain_model = self.model.pretrain if hasattr(self.model, 'pretrain') else self.model.drug_model.pretrain
+        else:
+            pretrain_model = self.viz_model.pretrain
+        
+        model_mask = FragNetFineTuneViz(
+            n_classes=getattr(self.model, 'n_classes', 1),
+            atom_features=pretrain_model.layers[0].atom_in,
+            frag_features=pretrain_model.layers[0].frag_in,
+            edge_features=pretrain_model.layers[0].edge_in,
+            num_layer=len(pretrain_model.layers),
+            drop_ratio=0.15,
+            num_heads=4,
+            emb_dim=128,
+            apply_mask=True,
+            bond_mask=bond_mask)
+        
+        # Load weights from the current model
+        try:
+            model_mask.load_state_dict(self.model.state_dict(), strict=False)
+        except:
+            # If direct loading fails, try loading just the pretrain part
+            model_dict = model_mask.state_dict()
+            pretrained_dict = {k: v for k, v in self.model.state_dict().items() if k in model_dict}
+            model_dict.update(pretrained_dict)
+            model_mask.load_state_dict(model_dict)
+        
+        model_mask.eval()
+        
+        if prop_type == 'DRP':
+            test_loader = DataLoader(dataset, collate_fn=collate_fn_cdrp, batch_size=len(dataset),
+                                    shuffle=False, drop_last=False)
+        else:
+            test_loader = DataLoader(dataset, collate_fn=collate_fn_for_bond_mask, batch_size=len(dataset),
+                                    shuffle=False, drop_last=False)
+        
+        batch = next(iter(test_loader))
+        
+        with torch.no_grad():
+            if prop_type in PROP_LIST:
+                pred_mask = model_mask(batch)
+            elif prop_type == 'Energy':
+                _, _, _, pred_mask = model_mask(batch)
+        
+        return pred_mask
+
+    def get_all_contributions(self, prop_type='Solubility'):
+        """Calculate and return all contribution types (atom, bond, fragbond)"""
+        if not hasattr(self, 'data_item'):
+            raise ValueError("Must call calc_weights first to generate data_item")
+        
+        df_atom = self.calc_atom_contributions(self.data_item, prop_type)
+        df_bond = self.calc_bond_contributions(self.data_item, prop_type)
+        df_fbond = self.calc_fbond_contributions(self.data_item, prop_type)
+        
+        return df_atom, df_bond, df_fbond
+
+    def calc_fbond_contributions(self, data_item, prop_type='Solubility'):
+        """
+        Calculate fragment bond contributions by masking individual fragment bonds and comparing predictions.
+        
+        Args:
+            data_item: A data sample containing molecule information
+            prop_type: Type of property prediction ('Solubility', 'Lipophilicity', etc.)
+            
+        Returns:
+            DataFrame with columns: ['fragbond_node_index', 'begin_index', 'end_index', 'attr', 'pred_no_mask', 'pred_mask']
+        """
+        n_fbond_features = data_item.node_feautures_fbondg.shape[0]
+        graph, frags = get_frags(data_item.smiles)
+        
+        n_frags = len(graph.fragments)
+        
+        # Skip molecules with only one fragment (no fragment bonds)
+        if n_frags == 1:
+            return pd.DataFrame(columns=['fragbond_node_index', 'begin_index', 'end_index', 
+                                        'attr', 'pred_no_mask', 'pred_mask'])
+        
+        # Get fragment indices and connection attributes
+        frag_idx, cnx_attr = self._get_frag_idx_cnx_attr(graph)
+        frag_idx_array = frag_idx.numpy()
+        
+        results = []
+        
+        # Get prediction without masking
+        pred_no_mask = self._no_mask_prediction([data_item], prop_type)
+        
+        # Calculate contribution for each fragment bond (iterate in steps of 2 due to bidirectional edges)
+        for i in range(0, n_fbond_features, 2):
+            pred_mask = self._mask_prediction_fbond([data_item], prop_type, i)
+            attribution = (pred_no_mask - pred_mask).numpy().ravel()
+            
+            begin_frag_idx = frag_idx_array[0][i]
+            end_frag_idx = frag_idx_array[1][i]
+            
+            results.append([i, begin_frag_idx, end_frag_idx, attribution.item(),
+                          pred_no_mask.item(), pred_mask.item()])
+        
+        df_results = pd.DataFrame(results, columns=['fragbond_node_index', 'begin_index', 'end_index',
+                                                    'attr', 'pred_no_mask', 'pred_mask'])
+        
+        return df_results
+
+    def _get_frag_idx_cnx_attr(self, graph):
+        """
+        Get fragment indices and connection attributes from a molecular graph.
+        
+        Args:
+            graph: FragmentedMol object
+            
+        Returns:
+            tuple: (frag_idx tensor, cnx_attr tensor)
+        """
+        from fragnet.dataset.features import FeaturesEXP
+        
+        feature_creator = FeaturesEXP()
+        frag_idx = [[], []]
+        cnx_attr = []
+        feature_dtype = torch.float
+        
+        n_frags = len(graph.fragments)
+        
+        if n_frags == 1:
+            for connection in graph.connections:
+                frag_idx[0] += [connection.BeginFragIdx]
+                frag_idx[1] += [connection.EndFragIdx]
+                cnx_attr.append(feature_creator.connection_features_one_hot(connection))
+        else:
+            for connection in graph.connections:
+                frag_idx[0] += [connection.BeginFragIdx, connection.EndFragIdx]
+                frag_idx[1] += [connection.EndFragIdx, connection.BeginFragIdx]
+                cnx_attr.append(feature_creator.connection_features_one_hot(connection))
+                cnx_attr.append(feature_creator.connection_features_one_hot(connection))
+        
+        frag_idx = torch.tensor(frag_idx, dtype=torch.long)
+        cnx_attr = torch.tensor(cnx_attr, dtype=feature_dtype)
+        
+        return frag_idx, cnx_attr
+
+    def _mask_prediction_fbond(self, dataset, prop_type, fbond_mask):
+        """Get prediction with specific fragment bond masked"""
+        # Create a masked version of the model
+        from fragnet.vizualize.model import FragNetFineTuneViz
+        
+        # Get model parameters from existing model
+        if hasattr(self.model, 'pretrain'):
+            pretrain_model = self.model.pretrain if hasattr(self.model, 'pretrain') else self.model.drug_model.pretrain
+        else:
+            pretrain_model = self.viz_model.pretrain
+        
+        model_mask = FragNetFineTuneViz(
+            n_classes=getattr(self.model, 'n_classes', 1),
+            atom_features=pretrain_model.layers[0].atom_in,
+            frag_features=pretrain_model.layers[0].frag_in,
+            edge_features=pretrain_model.layers[0].edge_in,
+            num_layer=len(pretrain_model.layers),
+            drop_ratio=0.15,
+            num_heads=4,
+            emb_dim=128,
+            apply_mask=True,
+            fbond_mask=fbond_mask)
+        
+        # Load weights from the current model
+        try:
+            model_mask.load_state_dict(self.model.state_dict(), strict=False)
+        except:
+            # If direct loading fails, try loading just the pretrain part
+            model_dict = model_mask.state_dict()
+            pretrained_dict = {k: v for k, v in self.model.state_dict().items() if k in model_dict}
+            model_dict.update(pretrained_dict)
+            model_mask.load_state_dict(model_dict)
+        
+        model_mask.eval()
+        
+        if prop_type == 'DRP':
+            test_loader = DataLoader(dataset, collate_fn=collate_fn_cdrp, batch_size=len(dataset),
+                                    shuffle=False, drop_last=False)
+        else:
+            test_loader = DataLoader(dataset, collate_fn=collate_fn_for_bond_mask, batch_size=len(dataset),
+                                    shuffle=False, drop_last=False)
+        
+        batch = next(iter(test_loader))
+        
+        with torch.no_grad():
+            if prop_type in PROP_LIST:
+                pred_mask = model_mask(batch)
+            elif prop_type == 'Energy':
+                _, _, _, pred_mask = model_mask(batch)
+        
+        return pred_mask

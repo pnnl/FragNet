@@ -8,4 +8,23 @@ MODEL_CONFIG = f'{MODEL_CONFIG_PATH}/exp1s_h4pt4.yaml'
 MODEL_PATH = f'{MODEL_CONFIG_PATH}/h4/ft.pt'
 
 
+PROP_LIST=[
+    "Solubility",
+    "Solubility (tuned)", 
+    # "Solubility (Multi-Frag)",
+    "Solubility (Multi-Frag, tuned)", 
+    "Lipophilicity", 
+    "Energy", 
+    "DRP"]
+
+PROP_NAME_LIST=[
+    "In logS units",
+    "In logS units", 
+    # "In logS units",
+    "In logS units",  
+    "Lipophilicity", 
+    "Energy", 
+    "Drug Response Prediction"]
+
+
 
