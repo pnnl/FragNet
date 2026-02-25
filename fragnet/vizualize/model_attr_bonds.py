@@ -522,9 +522,7 @@ def no_mask_predictions_property(dataset, chkpt_path, prop_type, args):
     with torch.no_grad():
         model_no_mask.eval();
         if prop_type in PROP_LIST:
-            result = model_no_mask(batch)
-            # Handle both single tensor and tuple returns
-            pred_no_mask = result[0] if isinstance(result, tuple) else result
+            pred_no_mask = model_no_mask(batch)
         elif prop_type == 'Energy':
             _, _, _, pred_no_mask = model_no_mask(batch)
 
@@ -534,7 +532,7 @@ def no_mask_predictions_property(dataset, chkpt_path, prop_type, args):
 
 
 
-def mask_predictions_property(dataset, chkpt_path, prop_type, args):
+def mask_predictions_property(dataset, chkpt_path, prop_type, args, bond_mask):
     """
     the difference between no_mask_predictions_property and this one
     is that here, we set apply_mask=True
@@ -555,7 +553,8 @@ def mask_predictions_property(dataset, chkpt_path, prop_type, args):
                                 h4=args.finetune.model.h4,
                                 act=args.finetune.model.act,
                                 fthead=args.finetune.model.fthead,
-                                apply_mask=True
+                                apply_mask=False,
+                                bond_mask=bond_mask
                                 )
         if prop_type=='DRP':
             drug_model = FragNetFineTuneBaseViz(n_classes=args.finetune.model.n_classes, 
@@ -600,9 +599,7 @@ def mask_predictions_property(dataset, chkpt_path, prop_type, args):
     with torch.no_grad():
         model_mask.eval();
         if prop_type in PROP_LIST:
-            result = model_mask(batch)
-            # Handle both single tensor and tuple returns
-            pred_mask = result[0] if isinstance(result, tuple) else result
+            pred_mask = model_mask(batch)
         elif prop_type == 'Energy':
             _, _, _, pred_mask = model_mask(batch)
 
@@ -611,96 +608,19 @@ def mask_predictions_property(dataset, chkpt_path, prop_type, args):
 
 
 
-def get_predictions(dataset, model_config, chkpt_path, prop_type='Solubility'):
+def get_predictions(dataset, model_config, chkpt_path, bond_mask, prop_type='Solubility'):
     
     opt = OmegaConf.load(model_config)
     OmegaConf.resolve(opt)
-    # opt.update(vars(args))
     args=opt
 
-    # ds1 = copy.deepcopy(dataset)
-    # ds2 = copy.deepcopy(dataset)
-    
-
+    # the dataset is for one molecule and one bond_mask
     pred_no_mask = no_mask_predictions_property(dataset, chkpt_path, prop_type, args)
-
-
-        # model_no_mask = FragNetFineTune(n_classes=args.finetune.model.n_classes, 
-        #                         atom_features=args.atom_features, 
-        #                         frag_features=args.frag_features, 
-        #                         edge_features=args.edge_features,
-        #                         num_layer=args.finetune.model.num_layer, 
-        #                         drop_ratio=args.finetune.model.drop_ratio,
-        #                             num_heads=args.finetune.model.num_heads, 
-        #                             emb_dim=args.finetune.model.emb_dim,
-        #                             h1=args.finetune.model.h1,
-        #                             h2=args.finetune.model.h2,
-        #                             h3=args.finetune.model.h3,
-        #                             h4=args.finetune.model.h4,
-        #                             act=args.finetune.model.act,
-        #                             fthead=args.finetune.model.fthead)
-
-    
-    # model_no_mask.load_state_dict(torch.load('../../exps/ft/pnnl_set2/fragnet_hpdl_exp1s_h4pt4_10/ft_100.pt', 
-    #                                  map_location=torch.device('cpu') ))
-    # model_no_mask.load_state_dict(torch.load(chkpt_path, 
-    #                                  map_location=torch.device('cpu') ))
-    
-    # test_loader = DataLoader(dataset, collate_fn=collate_fn, batch_size=len(dataset), shuffle=False, drop_last=False)
-    # # test_loader = DataLoader(ds1, collate_fn=collate_fn, batch_size=len(dataset), shuffle=False, drop_last=False)
-    # batch = next(iter(test_loader))
-    
-    
-    # with torch.no_grad():
-    #     model_no_mask.eval();
-    #     pred_no_mask = model_no_mask(batch)
-    
-    # if model_type in ['property', 'cdrp']:
-    #     model_mask = FragNetFineTune(n_classes=args.finetune.model.n_classes, 
-    #                             atom_features=args.atom_features, 
-    #                             frag_features=args.frag_features, 
-    #                             edge_features=args.edge_features,
-    #                             num_layer=args.finetune.model.num_layer, 
-    #                             drop_ratio=args.finetune.model.drop_ratio,
-    #                                 num_heads=args.finetune.model.num_heads, 
-    #                                 emb_dim=args.finetune.model.emb_dim,
-    #                                 h1=args.finetune.model.h1,
-    #                                 h2=args.finetune.model.h2,
-    #                                 h3=args.finetune.model.h3,
-    #                                 h4=args.finetune.model.h4,
-    #                                 act=args.finetune.model.act,
-    #                                 fthead=args.finetune.model.fthead,
-    #                        apply_mask=True)
-    # elif model_type == 'energy':
-    #     model_no_mask = FragNetPreTrain(num_layer=args.pretrain.num_layer, 
-    #             drop_ratio=args.pretrain.drop_ratio,
-    #                 num_heads=args.pretrain.num_heads, 
-    #                 emb_dim=args.pretrain.emb_dim,
-    #                 atom_features=args.atom_features, 
-    #                 frag_features=args.frag_features, 
-    #                 edge_features=args.edge_feature,
-    #                 apply_mask=True)
-
-    
-    # model_mask.load_state_dict(torch.load('../../exps/ft/pnnl_set2/fragnet_hpdl_exp1s_h4pt4_10/ft_100.pt', 
-    #                                  map_location=torch.device('cpu') ))
-    # model_mask.load_state_dict(torch.load(chkpt_path, 
-    #                                  map_location=torch.device('cpu') ))
-    
-    
-    pred_mask = mask_predictions_property(dataset, chkpt_path, prop_type, args)
-
+    pred_mask = mask_predictions_property(dataset, chkpt_path, prop_type, args, bond_mask)
 
     test_loader = DataLoader(dataset, collate_fn=collate_fn, batch_size=len(dataset), shuffle=False, drop_last=False)
-    # # test_loader = DataLoader(ds2, collate_fn=collate_fn, batch_size=len(dataset), shuffle=False, drop_last=False)
     batch = next(iter(test_loader))
-    
-    
-    
-    # with torch.no_grad():
-    #     model_mask.eval();
-    #     pred_mask = model_mask(batch)
-    
+        
 
     return pred_no_mask, pred_mask, batch['y']
 
@@ -832,8 +752,7 @@ def highlight_atoms(atom_weights, mol):
     # png = Image.open(bio)
     bio = d2d.GetDrawingText()
     svg = bio.replace('svg:','')
-    # Return SVG string directly for Streamlit compatibility
-    png = svg
+    png = SVG(svg.replace('svg:',''))
 
     return png
 
@@ -842,12 +761,12 @@ from fragnet.dataset.data import CreateDataCDRP
 def get_attr_image(smiles, model_config, chkpt_path, prop_type, gene_expr=None, **kwargs):
 
     if prop_type !='DRP':
-        dataset = FinetuneData(target_name='log_sol', data_type='exp1s', frag_type=kwargs.get('frag_type', 'brics'))
+        dataset = FinetuneData(target_name='log_sol', data_type='exp1s', frag_type=kwargs['frag_type'])
         train = pd.DataFrame.from_dict({'smiles': [smiles], 'log_sol': [1.]})
         ds = dataset.get_ft_dataset(train)
         ds = extract_data(ds)
 
-        dataset = create_data(ds, frag_type=kwargs.get('frag_type', 'brics'))
+        dataset = create_data(ds, frag_type=kwargs['frag_type'])
     else:
         # self.smiles = smiles
         mol = get_mol(smiles, remove_conf=False)
@@ -881,13 +800,4 @@ def get_attr_image(smiles, model_config, chkpt_path, prop_type, gene_expr=None, 
     mol = get_mol(smiles)
     png = highlight_atoms(atom_weights, mol)
 
-    # Build fragment contribution info
-    frag_contributions = []
-    for i in range(len(attribution)):
-        frag_contributions.append({
-            'fragment_index': i,
-            'atoms': frag_atoms[i],
-            'contribution': attribution[i]
-        })
-
-    return png, atom_weights, frag_contributions
+    return png, atom_weights
