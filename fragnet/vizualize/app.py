@@ -187,4 +187,64 @@ with col3:
     st.write('Fragment Connection Weight Values')
     st.dataframe(connection_w)
 
+# Add contribution analysis section
+st.divider()
+st.header("Contribution Analysis")
+
+show_contributions = st.checkbox("Show Detailed Contribution Analysis", value=False)
+
+if show_contributions:
+    try:
+        with st.spinner("Calculating contributions..."):
+            df_atom_contrib, df_bond_contrib, df_fbond_contrib = viz.get_all_contributions(prop_type)
+        
+        contrib_col1, contrib_col2, contrib_col3 = st.columns(3)
+        
+        with contrib_col1:
+            st.subheader("Atom Contributions")
+            st.write("Impact of each atom on the prediction (masking approach)")
+            # Sort by absolute attribution value
+            df_atom_display = df_atom_contrib.copy()
+            df_atom_display['abs_attr'] = df_atom_display['attr'].abs()
+            df_atom_display = df_atom_display.sort_values('abs_attr', ascending=False).drop('abs_attr', axis=1)
+            st.dataframe(df_atom_display, hide_index=True)
+            
+            # Show summary statistics
+            st.write(f"**Mean Contribution:** {df_atom_contrib['attr'].mean():.4f}")
+            st.write(f"**Max Contribution:** {df_atom_contrib['attr'].max():.4f} (Atom {df_atom_contrib.loc[df_atom_contrib['attr'].idxmax(), 'atom_index']})")
+            st.write(f"**Min Contribution:** {df_atom_contrib['attr'].min():.4f} (Atom {df_atom_contrib.loc[df_atom_contrib['attr'].idxmin(), 'atom_index']})")
+        
+        with contrib_col2:
+            st.subheader("Bond Contributions")
+            st.write("Impact of each bond on the prediction (masking approach)")
+            df_bond_display = df_bond_contrib.copy()
+            df_bond_display['abs_attr'] = df_bond_display['attr'].abs()
+            df_bond_display = df_bond_display.sort_values('abs_attr', ascending=False).drop('abs_attr', axis=1)
+            st.dataframe(df_bond_display, hide_index=True)
+            
+            # Show summary statistics
+            st.write(f"**Mean Contribution:** {df_bond_contrib['attr'].mean():.4f}")
+            if not df_bond_contrib.empty:
+                st.write(f"**Max Contribution:** {df_bond_contrib['attr'].max():.4f} (Bond {df_bond_contrib.loc[df_bond_contrib['attr'].idxmax(), 'bond_index']})")
+                st.write(f"**Min Contribution:** {df_bond_contrib['attr'].min():.4f} (Bond {df_bond_contrib.loc[df_bond_contrib['attr'].idxmin(), 'bond_index']})")
+        
+        with contrib_col3:
+            st.subheader("Fragment Bond Contributions")
+            st.write("Impact of fragment connections on the prediction")
+            if not df_fbond_contrib.empty:
+                df_fbond_display = df_fbond_contrib.copy()
+                df_fbond_display['abs_attr'] = df_fbond_display['attr'].abs()
+                df_fbond_display = df_fbond_display.sort_values('abs_attr', ascending=False).drop('abs_attr', axis=1)
+                st.dataframe(df_fbond_display, hide_index=True)
+                
+                # Show summary statistics
+                st.write(f"**Mean Contribution:** {df_fbond_contrib['attr'].mean():.4f}")
+                st.write(f"**Max Contribution:** {df_fbond_contrib['attr'].max():.4f}")
+                st.write(f"**Min Contribution:** {df_fbond_contrib['attr'].min():.4f}")
+            else:
+                st.info("No fragment bonds in this molecule (single fragment)")
+                
+    except Exception as e:
+        st.error(f"Error calculating contributions: {str(e)}")
+
 st.sidebar.write(f"Current smiles: {selected}")
