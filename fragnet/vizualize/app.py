@@ -273,6 +273,21 @@ try:
                                ['Fragment Index', 'Atoms', 'Contribution'])
 
     with tab_fconn:
+        # Row 1: Fragment decomposition + atom mapping
+        row1_col1, row1_col2 = st.columns(2)
+        with row1_col1:
+            st.subheader("Fragment Decomposition")
+            st.image(png_frag_highlight, use_column_width=True)
+        with row1_col2:
+            st.subheader("Fragment Atom Mapping")
+            with st.expander("📋 View Fragment Atom Mapping", expanded=True):
+                df_atoms_in_frags2 = pd.DataFrame(dict([(k, pd.Series(v)) for k, v in atoms_in_frags.items()])).T
+                df_atoms_in_frags2.index.rename('Fragment', inplace=True)
+                st.dataframe(df_atoms_in_frags2, use_container_width=True)
+
+        st.markdown('---')
+
+        # Row 2: Connection weights + contribution table
         v_col, t_col = st.columns(2)
         with v_col:
             st.subheader("Connection Weight Values")
