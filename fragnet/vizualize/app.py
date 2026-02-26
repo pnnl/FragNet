@@ -108,7 +108,6 @@ selected = st.sidebar.text_input(
 selected = st_ketcher(selected)
 
 st.sidebar.markdown('---')
-# st.sidebar.subheader("🎨 Display Options")
 
 # if prop_type=="DRP":
 
@@ -141,13 +140,7 @@ st.sidebar.markdown('---')
 
 if prop_type in ["Solubility", "Lipophilicity", "Energy"]:
     viz, prop_prediction, model_config, chkpt_path = resolve_prop_model(prop_type)
-# elif prop_type == "DRP":
-#     viz, prop_prediction, model_config, chkpt_path = resolve_DRP(selected, cell_line, cell_line_df)
 
-# Main title
-# st.title("🧬 FragNet Molecular Property Visualization")
-
-# st.markdown('---')
 
 # Display prediction in a prominent metric card
 with st.sidebar:
@@ -158,14 +151,12 @@ with st.sidebar:
     elif prop_type == "Energy":
         st.metric(label="📊 Predicted Energy", value=f"{prop_prediction:.4f}")
 
-# st.markdown('---')
-# st.header("🔍 Analysis")
 
 col1, col2, col3 = st.columns(3)
 
 
-hide_bond_weights = st.sidebar.checkbox("Hide bond weights", help="Toggle bond weight visualization")
-hide_atom_weights = st.sidebar.checkbox("Hide atom weights", help="Toggle atom weight visualization")
+# hide_bond_weights = st.sidebar.checkbox("Hide bond weights", help="Toggle bond weight visualization")
+# hide_atom_weights = st.sidebar.checkbox("Hide atom weights", help="Toggle atom weight visualization")
 
 hide_bond_weights=False
 png_frag_attn, png_frag_highlight, frag_w, connection_w, atoms_in_frags = viz.frag_weight_highlight()
