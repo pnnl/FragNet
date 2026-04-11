@@ -197,14 +197,17 @@ python  hp/hpoptuna.py --config exps/ft/esol/e1pt4.yaml --n_trials 10 \
 If you use our work, please cite it as,
 
 ```
-@misc{panapitiya2024fragnetgraphneuralnetwork,
-      title={FragNet: A Graph Neural Network for Molecular Property Prediction with Four Layers of Interpretability}, 
-      author={Gihan Panapitiya and Peiyuan Gao and C Mark Maupin and Emily G Saldanha},
-      year={2024},
-      eprint={2410.12156},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2410.12156}, 
+@article{doi:10.1021/jacs.5c22620,
+author = {Panapitiya, Gihan and Gao, Peiyuan and Maupin, C. Mark and Saldanha, Emily G.},
+title = {FragNet: A Graph Neural Network for Molecular Property Prediction with Four Levels of Interpretability},
+journal = {Journal of the American Chemical Society},
+volume = {148},
+number = {9},
+pages = {9930-9950},
+year = {2026},
+doi = {10.1021/jacs.5c22620},note ={PMID: 41738545},
+URL = { https://doi.org/10.1021/jacs.5c22620},
+eprint = { https://doi.org/10.1021/jacs.5c22620}
 }
 ```
 
