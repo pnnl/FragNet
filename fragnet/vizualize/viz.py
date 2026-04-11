@@ -959,39 +959,7 @@ class FragNetVizApp:
 
     def _mask_prediction(self, dataset, prop_type, atom_mask_individual):
         """Get prediction with specific atom masked"""
-        # Create a masked version of the model
-        from fragnet.vizualize.model import FragNetFineTuneViz
-        
-        # Get model parameters from existing model
-        if hasattr(self.model, 'pretrain'):
-            pretrain_model = self.model.pretrain if hasattr(self.model, 'pretrain') else self.model.drug_model.pretrain
-        else:
-            pretrain_model = self.viz_model.pretrain
-        
-        layer0 = pretrain_model.layers[0]
-        atom_features = layer0.atom_in if hasattr(layer0, 'atom_in') else layer0.atom_embed.in_features
-        frag_features = layer0.frag_in if hasattr(layer0, 'frag_in') else layer0.frag_embed.in_features
-        edge_features = layer0.edge_in if hasattr(layer0, 'edge_in') else layer0.edge_embed.in_features
-
-        model_mask = FragNetFineTuneViz(
-            n_classes=getattr(self.model, 'n_classes', 1),
-            atom_features=atom_features,
-            frag_features=frag_features,
-            edge_features=edge_features,
-            num_layer=len(pretrain_model.layers),
-            drop_ratio=0.15,
-            num_heads=4,
-            emb_dim=128)
-
-        # Load weights from the current model
-        try:
-            model_mask.load_state_dict(self.model.state_dict(), strict=False)
-        except:
-            # If direct loading fails, try loading just the pretrain part
-            model_dict = model_mask.state_dict()
-            pretrained_dict = {k: v for k, v in self.model.state_dict().items() if k in model_dict}
-            model_dict.update(pretrained_dict)
-            model_mask.load_state_dict(model_dict)
+        model_mask = copy.deepcopy(self.model)
 
         for layer in model_mask.pretrain.layers:
             layer.atom_mask_individual = atom_mask_individual
@@ -1057,39 +1025,7 @@ class FragNetVizApp:
 
     def _mask_prediction_bond(self, dataset, prop_type, bond_mask):
         """Get prediction with specific bond masked"""
-        # Create a masked version of the model
-        from fragnet.vizualize.model import FragNetFineTuneViz
-        
-        # Get model parameters from existing model
-        if hasattr(self.model, 'pretrain'):
-            pretrain_model = self.model.pretrain if hasattr(self.model, 'pretrain') else self.model.drug_model.pretrain
-        else:
-            pretrain_model = self.viz_model.pretrain
-        
-        layer0 = pretrain_model.layers[0]
-        atom_features = layer0.atom_in if hasattr(layer0, 'atom_in') else layer0.atom_embed.in_features
-        frag_features = layer0.frag_in if hasattr(layer0, 'frag_in') else layer0.frag_embed.in_features
-        edge_features = layer0.edge_in if hasattr(layer0, 'edge_in') else layer0.edge_embed.in_features
-
-        model_mask = FragNetFineTuneViz(
-            n_classes=getattr(self.model, 'n_classes', 1),
-            atom_features=atom_features,
-            frag_features=frag_features,
-            edge_features=edge_features,
-            num_layer=len(pretrain_model.layers),
-            drop_ratio=0.15,
-            num_heads=4,
-            emb_dim=128)
-
-        # Load weights from the current model
-        try:
-            model_mask.load_state_dict(self.model.state_dict(), strict=False)
-        except:
-            # If direct loading fails, try loading just the pretrain part
-            model_dict = model_mask.state_dict()
-            pretrained_dict = {k: v for k, v in self.model.state_dict().items() if k in model_dict}
-            model_dict.update(pretrained_dict)
-            model_mask.load_state_dict(model_dict)
+        model_mask = copy.deepcopy(self.model)
 
         for layer in model_mask.pretrain.layers:
             layer.bond_mask = bond_mask
@@ -1208,39 +1144,7 @@ class FragNetVizApp:
 
     def _mask_prediction_fbond(self, dataset, prop_type, fbond_mask):
         """Get prediction with specific fragment bond masked"""
-        # Create a masked version of the model
-        from fragnet.vizualize.model import FragNetFineTuneViz
-        
-        # Get model parameters from existing model
-        if hasattr(self.model, 'pretrain'):
-            pretrain_model = self.model.pretrain if hasattr(self.model, 'pretrain') else self.model.drug_model.pretrain
-        else:
-            pretrain_model = self.viz_model.pretrain
-        
-        layer0 = pretrain_model.layers[0]
-        atom_features = layer0.atom_in if hasattr(layer0, 'atom_in') else layer0.atom_embed.in_features
-        frag_features = layer0.frag_in if hasattr(layer0, 'frag_in') else layer0.frag_embed.in_features
-        edge_features = layer0.edge_in if hasattr(layer0, 'edge_in') else layer0.edge_embed.in_features
-
-        model_mask = FragNetFineTuneViz(
-            n_classes=getattr(self.model, 'n_classes', 1),
-            atom_features=atom_features,
-            frag_features=frag_features,
-            edge_features=edge_features,
-            num_layer=len(pretrain_model.layers),
-            drop_ratio=0.15,
-            num_heads=4,
-            emb_dim=128)
-
-        # Load weights from the current model
-        try:
-            model_mask.load_state_dict(self.model.state_dict(), strict=False)
-        except:
-            # If direct loading fails, try loading just the pretrain part
-            model_dict = model_mask.state_dict()
-            pretrained_dict = {k: v for k, v in self.model.state_dict().items() if k in model_dict}
-            model_dict.update(pretrained_dict)
-            model_mask.load_state_dict(model_dict)
+        model_mask = copy.deepcopy(self.model)
 
         for layer in model_mask.pretrain.layers:
             layer.frag_bond_mask = fbond_mask
