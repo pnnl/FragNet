@@ -126,7 +126,7 @@ FragNet provides multiple user-friendly ways to interact with the model and visu
 
 We provide two ready-to-use Jupyter notebooks that require no additional setup beyond installation:
 
-- **fragnet/notebooks/interprete.ipynb** - A streamlined notebook for quick interpretability analysis
+- **fragnet/notebooks/FragNet.ipynb** - A streamlined notebook for quick interpretability analysis
 
 **How to use:**
 ```bash
