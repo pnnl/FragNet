@@ -240,16 +240,6 @@ class FragNetLayerA(nn.Module):
 
         
         edge_attr_fbond_graph = self.edge_attr_fbond_embed(edge_attr_fbond_graph)
-
-        flipped_pairs = find_flipped_pairs(edge_attr_fbond_graph.numpy())
-        flipped_pairs_values = list(flipped_pairs.values())
-        
-        # apply the mask for fragment bond
-        if self.frag_bond_mask is not None:
-            with torch.no_grad():
-                print('applying fragment bond mask')
-                edge_attr_fbond_graph[ flipped_pairs_values[self.frag_bond_mask][0], :] = 0.0
-                edge_attr_fbond_graph[ flipped_pairs_values[self.frag_bond_mask][1], :] = 0.0
                 
                 
         ea_fbonds = edge_attr_fbond_graph.repeat(self.num_heads, 1, 1).permute(1, 0, 2)
@@ -281,10 +271,14 @@ class FragNetLayerA(nn.Module):
 
         new_fbond_features = node_feats_sum_fb.view(num_nodes_fb, -1)
 
+        # apply the mask for fragment bond: zero out both directed edges (rows 2k and 2k+1)
+        if self.frag_bond_mask is not None:
+            with torch.no_grad():
+                new_fbond_features[2 * self.frag_bond_mask, :] = 0.0
+                new_fbond_features[2 * self.frag_bond_mask + 1, :] = 0.0
+
         # get frag bond features
         edge_attr_fbond_new = new_fbond_features
-
-        # TODO: apply mask to edge_attr_fbond_new
 
         source, target = frag_index
         num_nodes_f = x_frags.size(0)

@@ -475,10 +475,10 @@ def collate_fn_for_bond_mask(data_list):
             'y': y.type(torch.float),
             }
 
-def get_frags(smiles):
+def get_frags(smiles, frag_type='brics'):
     mol = get_3Dcoords(smiles)
     conf = mol.GetConformer(id=0)
-    graph = FragmentedMol(mol, conf)
+    graph = FragmentedMol(mol, conf, frag_type=frag_type)
     frags = graph.fragments
     return graph, frags
 
@@ -951,9 +951,9 @@ class FragNetVizApp:
         
         with torch.no_grad():
             if prop_type in PROP_LIST:
-                pred_no_mask = model_no_mask(batch)
+                pred_no_mask = model_no_mask(batch)[0]
             elif prop_type == 'Energy':
-                _, _, _, pred_no_mask = model_no_mask(batch)
+                pred_no_mask = model_no_mask(batch)[0]
         
         return pred_no_mask
 
@@ -968,18 +968,21 @@ class FragNetVizApp:
         else:
             pretrain_model = self.viz_model.pretrain
         
+        layer0 = pretrain_model.layers[0]
+        atom_features = layer0.atom_in if hasattr(layer0, 'atom_in') else layer0.atom_embed.in_features
+        frag_features = layer0.frag_in if hasattr(layer0, 'frag_in') else layer0.frag_embed.in_features
+        edge_features = layer0.edge_in if hasattr(layer0, 'edge_in') else layer0.edge_embed.in_features
+
         model_mask = FragNetFineTuneViz(
             n_classes=getattr(self.model, 'n_classes', 1),
-            atom_features=pretrain_model.layers[0].atom_in,
-            frag_features=pretrain_model.layers[0].frag_in,
-            edge_features=pretrain_model.layers[0].edge_in,
+            atom_features=atom_features,
+            frag_features=frag_features,
+            edge_features=edge_features,
             num_layer=len(pretrain_model.layers),
             drop_ratio=0.15,
             num_heads=4,
-            emb_dim=128,
-            apply_mask=True,
-            atom_mask_individual=atom_mask_individual)
-        
+            emb_dim=128)
+
         # Load weights from the current model
         try:
             model_mask.load_state_dict(self.model.state_dict(), strict=False)
@@ -989,7 +992,10 @@ class FragNetVizApp:
             pretrained_dict = {k: v for k, v in self.model.state_dict().items() if k in model_dict}
             model_dict.update(pretrained_dict)
             model_mask.load_state_dict(model_dict)
-        
+
+        for layer in model_mask.pretrain.layers:
+            layer.atom_mask_individual = atom_mask_individual
+
         model_mask.eval()
         
         if prop_type == 'DRP':
@@ -1003,9 +1009,9 @@ class FragNetVizApp:
         
         with torch.no_grad():
             if prop_type in PROP_LIST:
-                pred_mask = model_mask(batch)
+                pred_mask = model_mask(batch)[0]
             elif prop_type == 'Energy':
-                _, _, _, pred_mask = model_mask(batch)
+                pred_mask = model_mask(batch)[0]
         
         return pred_mask
 
@@ -1060,18 +1066,21 @@ class FragNetVizApp:
         else:
             pretrain_model = self.viz_model.pretrain
         
+        layer0 = pretrain_model.layers[0]
+        atom_features = layer0.atom_in if hasattr(layer0, 'atom_in') else layer0.atom_embed.in_features
+        frag_features = layer0.frag_in if hasattr(layer0, 'frag_in') else layer0.frag_embed.in_features
+        edge_features = layer0.edge_in if hasattr(layer0, 'edge_in') else layer0.edge_embed.in_features
+
         model_mask = FragNetFineTuneViz(
             n_classes=getattr(self.model, 'n_classes', 1),
-            atom_features=pretrain_model.layers[0].atom_in,
-            frag_features=pretrain_model.layers[0].frag_in,
-            edge_features=pretrain_model.layers[0].edge_in,
+            atom_features=atom_features,
+            frag_features=frag_features,
+            edge_features=edge_features,
             num_layer=len(pretrain_model.layers),
             drop_ratio=0.15,
             num_heads=4,
-            emb_dim=128,
-            apply_mask=True,
-            bond_mask=bond_mask)
-        
+            emb_dim=128)
+
         # Load weights from the current model
         try:
             model_mask.load_state_dict(self.model.state_dict(), strict=False)
@@ -1081,7 +1090,10 @@ class FragNetVizApp:
             pretrained_dict = {k: v for k, v in self.model.state_dict().items() if k in model_dict}
             model_dict.update(pretrained_dict)
             model_mask.load_state_dict(model_dict)
-        
+
+        for layer in model_mask.pretrain.layers:
+            layer.bond_mask = bond_mask
+
         model_mask.eval()
         
         if prop_type == 'DRP':
@@ -1095,9 +1107,9 @@ class FragNetVizApp:
         
         with torch.no_grad():
             if prop_type in PROP_LIST:
-                pred_mask = model_mask(batch)
+                pred_mask = model_mask(batch)[0]
             elif prop_type == 'Energy':
-                _, _, _, pred_mask = model_mask(batch)
+                pred_mask = model_mask(batch)[0]
         
         return pred_mask
 
@@ -1144,7 +1156,7 @@ class FragNetVizApp:
         
         # Calculate contribution for each fragment bond (iterate in steps of 2 due to bidirectional edges)
         for i in range(0, n_fbond_features, 2):
-            pred_mask = self._mask_prediction_fbond([data_item], prop_type, i)
+            pred_mask = self._mask_prediction_fbond([data_item], prop_type, i // 2)
             attribution = (pred_no_mask - pred_mask).numpy().ravel()
             
             begin_frag_idx = frag_idx_array[0][i]
@@ -1205,18 +1217,21 @@ class FragNetVizApp:
         else:
             pretrain_model = self.viz_model.pretrain
         
+        layer0 = pretrain_model.layers[0]
+        atom_features = layer0.atom_in if hasattr(layer0, 'atom_in') else layer0.atom_embed.in_features
+        frag_features = layer0.frag_in if hasattr(layer0, 'frag_in') else layer0.frag_embed.in_features
+        edge_features = layer0.edge_in if hasattr(layer0, 'edge_in') else layer0.edge_embed.in_features
+
         model_mask = FragNetFineTuneViz(
             n_classes=getattr(self.model, 'n_classes', 1),
-            atom_features=pretrain_model.layers[0].atom_in,
-            frag_features=pretrain_model.layers[0].frag_in,
-            edge_features=pretrain_model.layers[0].edge_in,
+            atom_features=atom_features,
+            frag_features=frag_features,
+            edge_features=edge_features,
             num_layer=len(pretrain_model.layers),
             drop_ratio=0.15,
             num_heads=4,
-            emb_dim=128,
-            apply_mask=True,
-            fbond_mask=fbond_mask)
-        
+            emb_dim=128)
+
         # Load weights from the current model
         try:
             model_mask.load_state_dict(self.model.state_dict(), strict=False)
@@ -1226,7 +1241,10 @@ class FragNetVizApp:
             pretrained_dict = {k: v for k, v in self.model.state_dict().items() if k in model_dict}
             model_dict.update(pretrained_dict)
             model_mask.load_state_dict(model_dict)
-        
+
+        for layer in model_mask.pretrain.layers:
+            layer.frag_bond_mask = fbond_mask
+
         model_mask.eval()
         
         if prop_type == 'DRP':
@@ -1240,8 +1258,8 @@ class FragNetVizApp:
         
         with torch.no_grad():
             if prop_type in PROP_LIST:
-                pred_mask = model_mask(batch)
+                pred_mask = model_mask(batch)[0]
             elif prop_type == 'Energy':
-                _, _, _, pred_mask = model_mask(batch)
+                pred_mask = model_mask(batch)[0]
         
         return pred_mask
